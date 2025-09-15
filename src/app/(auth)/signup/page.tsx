@@ -1,13 +1,25 @@
 "use client";
+
 import BackgroundEffect from "@/components/landing/background-effect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { createAuthClient } from "better-auth/react";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+
+const { useSession } = createAuthClient();
 
 const page = () => {
   const router = useRouter();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session) {
+      router.push("/dashboard");
+    }
+  }, [session, router]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -39,13 +51,13 @@ const page = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col items-center justify-center">
+    <div className="flex h-screen flex-col items-center justify-center py-5">
       <BackgroundEffect />
-      <div className="flex w-full flex-col items-center justify-center gap-10">
-        <div className="font-platypi text-5xl font-semibold text-[#296A86]">
-          DealScope
-        </div>
-        <div className="font-dmsans mx-auto max-w-lg text-center text-2xl leading-8 text-[#C5C5C5]">
+      <div className="flex w-full flex-col items-center justify-center gap-7">
+        <h1 className="font-platypi text-brand-primary text-3xl font-semibold md:text-4xl">
+          Venturassist
+        </h1>
+        <div className="font-dmsans text-brand-secondary mx-auto max-w-lg text-center text-xl md:text-2xl md:leading-8">
           Smart Startup Analysis, Simplified.
         </div>
         <form
@@ -96,7 +108,8 @@ const page = () => {
           </div>
           <Button
             type="submit"
-            className="h-16 w-full border-2 border-b-4 border-black bg-[#FFC868] text-xl font-medium text-black shadow-sm hover:bg-[#FFC868]/60"
+            variant="brand"
+            className="w-full py-6 text-base font-medium text-black shadow-sm md:py-8 md:text-xl"
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : "Let's Get Started →"}
