@@ -122,3 +122,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@theme {
+  --color-brand-primary: #296a86;
+  --color-brand-secondary: #6a6a6a;
+  --color-brand-accent: #ffc868;
+}

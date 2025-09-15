@@ -1,23 +1,22 @@
-'use client'
-import AnalyseStartUp from "@/components/analyse-startup";
-import BackgroundEffect from "@/components/background-effect";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import AnalyseStartUp from "@/components/landing/analyse-startup";
+import BackgroundEffect from "@/components/landing/background-effect";
+import Navbar from "@/components/landing/navbar";
 
 export default function Home() {
-  const router = useRouter();
   return (
-    <div className="flex flex-col h-screen relative">
+    <div className="relative flex h-screen flex-col p-2">
       <BackgroundEffect />
-      <div className="flex justify-between items-center w-full px-10 py-5">
-        <Image src="/venturassist-logo.svg" alt="DealScope" width={80} height={80} />
-        <Button className="h-12 bg-[#FFC868] text-black font-medium  border-2 border-b-4 text-xl border-black shadow-sm hover:bg-[#FFC868]/60" onClick={() => router.push('/signup')}>Sign up now</Button>
-      </div>
-      <div className="flex flex-col items-center justify-center h-full gap-10">
-      <h1 className="text-6xl font-platypi text-[#296A86] font-medium mx-auto text-center">DealScope – Your AI VC Analyst</h1>
-      <h3 className="font-dmsans text-[#6A6A6A] text-3xl max-w-4xl text-center leading-13">Upload a startup’s pitch deck or transcript and get instant investor-ready insights.</h3>
-        <AnalyseStartUp/>
+      <Navbar />
+
+      <div className="flex h-full flex-col items-center justify-center space-y-10">
+        <h1 className="font-platypi text-brand-primary mx-auto text-center text-4xl font-medium text-pretty md:text-6xl">
+          Venturassist – Your AI VC Analyst
+        </h1>
+        <h3 className="font-dmsans text-brand-secondary max-w-2xl text-center text-xl text-pretty md:text-2xl lg:leading-13">
+          Upload a startup’s pitch deck or transcript and get instant
+          investor-ready insights.
+        </h3>
+        <AnalyseStartUp />
       </div>
     </div>
   );
