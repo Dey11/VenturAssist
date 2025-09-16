@@ -17,3 +17,7 @@ export const dataSourcesTextInputSchema = z.object({
   startupId: z.string(),
   content: z.string(),
 });
+
+export const enqueueJobSchema = z.object({
+  startupId: z.string(),
+});

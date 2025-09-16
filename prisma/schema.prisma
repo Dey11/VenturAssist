@@ -149,7 +149,9 @@ model DataSource {
   // RELATIONS
   startupId String
   startup   Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
-  jobs      Job[]
+
+  // A data source can be associated with multiple jobs.
+  jobs Job[]
 
   @@index([startupId])
 }
@@ -159,7 +161,7 @@ model DataSource {
 model Job {
   id          String    @id @default(cuid())
   type        JobType
-  status      JobStatus @default(NOT_STARTED)
+  status      JobStatus @default(PENDING)
   payload     Json? /// Input for the job, e.g., { "fileUrl": "...", "dataSourceId": "..." }
   result      Json? /// Output of the job, e.g., { "metricsExtracted": 5, "teamMembersFound": 3 }
   logs        String? /// Store error messages or processing logs.
@@ -173,9 +175,8 @@ model Job {
   startupId String
   startup   Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
 
-  // A job can be associated with a specific data source, but doesn't have to be.
-  dataSourceId String?
-  dataSource   DataSource? @relation(fields: [dataSourceId], references: [id], onDelete: SetNull)
+  // A job can be associated with multiple data sources.
+  dataSources DataSource[]
 
   @@index([startupId])
   @@index([status])
