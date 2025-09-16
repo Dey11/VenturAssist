@@ -36,7 +36,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ dataSourceId: newDataSource.id });
+    return NextResponse.json(
+      { dataSourceId: newDataSource.id },
+      { status: 201 },
+    );
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },

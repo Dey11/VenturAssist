@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     const { fileName, fileType, fileSize, startupId } = validatedBody.data;
 
-    const newFileName = `uploads/${session.user.id}/${startupId}/${fileName}`;
+    const newFileName = `uploads/${session.user.id}/${startupId}/${fileName}`; // we dont account for dupe names rn
     const signedUrl = await getSignedUrlForUploading(
       newFileName,
       fileType,

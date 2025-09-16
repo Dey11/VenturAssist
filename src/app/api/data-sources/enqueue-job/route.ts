@@ -50,10 +50,13 @@ export async function POST(req: NextRequest) {
       return job;
     });
 
-    return NextResponse.json({
-      message: "Job enqueued successfully",
-      jobId: newJob.id,
-    });
+    return NextResponse.json(
+      {
+        message: "Job enqueued successfully",
+        jobId: newJob.id,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },
