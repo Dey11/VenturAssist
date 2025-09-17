@@ -19,12 +19,12 @@ export async function GET(req: Request) {
       select: {
         id: true,
         name: true,
-        description : true,
+        description: true,
         overallStatus: true,
         updatedAt: true,
-        teamMembers : true,
-        risks : true,
-        keyMetrics : true,
+        teamMembers: true,
+        risks: true,
+        keyMetrics: true,
       },
       orderBy: {
         updatedAt: 'desc',
