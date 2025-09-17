@@ -25,3 +25,13 @@ export const enqueueJobSchema = z.object({
 export const getJobSchema = z.object({
   jobId: z.string(),
 });
+export const createStartupSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  websiteUrl: z.string().url().optional(),
+});
+
+export const updateStartupSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+});
