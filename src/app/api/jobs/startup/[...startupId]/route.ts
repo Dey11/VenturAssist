@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// this route is used for long polling in the frontend to get the status of the job -> show some status bar
+// this route is used for long polling in the frontend to get the status of all jobs for a startup -> show some status bar
 export default async function GET(
   request: Request,
   { params }: { params: { startupId: string } },
