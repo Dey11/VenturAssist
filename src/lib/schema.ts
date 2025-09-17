@@ -22,6 +22,9 @@ export const enqueueJobSchema = z.object({
   startupId: z.string(),
 });
 
+export const getJobSchema = z.object({
+  jobId: z.string(),
+});
 export const createStartupSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
