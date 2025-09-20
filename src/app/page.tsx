@@ -4,7 +4,7 @@ import Navbar from "@/components/landing/navbar";
 
 export default function Home() {
   return (
-    <div className="relative flex h-screen flex-col p-2">
+    <div className="relative mx-auto flex h-screen max-w-7xl flex-col p-2">
       <BackgroundEffect />
       <Navbar />
 

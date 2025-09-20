@@ -1,48 +1,69 @@
 import { auth } from "@/lib/auth";
 import { createStartupSchema } from "@/lib/schema";
 import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { OnboardingQuestionKey } from "@/generated/prisma/client";
 
-export const POST = async (req: Request) => {
-    try {
-        const session = await auth.api.getSession({
-            headers: await req.headers,
-          });
-      
-          if (!session) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-          }
+export const POST = async (req: NextRequest) => {
+  try {
+    const session = await auth.api.getSession({
+      headers: await req.headers,
+    });
 
-          const body = await req.json();
-          const validatedBody = createStartupSchema.safeParse(body);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-          if (!validatedBody.success) {
-            return NextResponse.json(
-              { error: "Invalid request body" },
-              { status: 400 },
-            );
-          }
+    const body = await req.json();
+    const validatedBody = createStartupSchema.safeParse(body);
 
-          const { name, description, websiteUrl } = validatedBody.data;
+    if (!validatedBody.success) {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 },
+      );
+    }
 
-          const startup = await prisma.startup.create({
-            data: {
-              name,
-              description,
-              websiteUrl,
-              userId: session.user.id,
-            },
-          });
+    const { name, description, websiteUrl, sector, stage } = validatedBody.data;
 
-          return NextResponse.json({
-            id: startup.id,
-            name: startup.name,
-            overallStatus: startup.overallStatus,
-          }, { status: 201 });
-    }  catch (error) {
-        return NextResponse.json(
-          { error: "Internal Server Error" },
-          { status: 500 },
-        );
-      }
-}
+    const startup = await prisma.startup.create({
+      data: {
+        name,
+        description,
+        websiteUrl,
+        userId: session.user.id,
+      },
+    });
+
+    await prisma.onboardingResponse.createMany({
+      data: [
+        {
+          questionKey: OnboardingQuestionKey.SECTOR,
+          questionText: "Which sector does your startup belong to?",
+          answerValue: sector,
+          startupId: startup.id,
+        },
+        {
+          questionKey: OnboardingQuestionKey.STAGE,
+          questionText: "Which stage is your startup in?",
+          answerValue: stage,
+          startupId: startup.id,
+        },
+      ],
+    });
+
+    return NextResponse.json(
+      {
+        id: startup.id,
+        name: startup.name,
+        overallStatus: startup.overallStatus,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+};

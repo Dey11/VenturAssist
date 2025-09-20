@@ -29,6 +29,8 @@ export const createStartupSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   websiteUrl: z.string().url().optional(),
+  sector: z.string(),
+  stage: z.string(),
 });
 
 export const updateStartupSchema = z.object({
