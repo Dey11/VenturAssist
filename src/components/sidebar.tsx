@@ -25,7 +25,7 @@ export default function Sidebar() {
   console.log(activeItem);
 
   return (
-    <aside className="bg-brand-primary absolute top-0 left-0 h-full w-[5svw] p-2">
+    <aside className="bg-brand-primary fixed top-0 left-0 h-full w-[5svw] p-2">
       <div className="flex flex-col items-center justify-center">
         <Link href="/">
           <Image
