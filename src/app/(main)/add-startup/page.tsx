@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import FileDropzone from "@/components/landing/file-dropzone";
@@ -9,11 +10,55 @@ type Sector = "fintech" | "healthtech" | "edtech" | "other";
 type Stage = "idea" | "preseed" | "seed" | "series a";
 
 export default function AddStartupPage() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [startupName, setStartupName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [selectedSector, setSelectedSector] = useState<Sector | null>(null);
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
+
+  const [files, setFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [startupId, setStartupId] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [shouldUploadFiles, setShouldUploadFiles] = useState(false);
+  const [waitingForUploads, setWaitingForUploads] = useState(false);
+
+  const [errors, setErrors] = useState<string[]>([]);
+
+  React.useEffect(() => {
+    if (
+      waitingForUploads &&
+      startupId &&
+      uploadedFiles.length >= files.length
+    ) {
+      console.log("All uploads complete, redirecting...");
+      router.push(`/startup/${startupId}/processing`);
+    }
+  }, [
+    waitingForUploads,
+    startupId,
+    uploadedFiles.length,
+    files.length,
+    router,
+  ]);
+
+  React.useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (waitingForUploads && startupId) {
+      timeoutId = setTimeout(() => {
+        console.warn("Upload timeout reached, redirecting anyway...");
+        router.push(`/startup/${startupId}/processing`);
+      }, 30000); // 30 seconds timeout
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [waitingForUploads, startupId, router]);
 
   const handleSectorChange = (sector: Sector) => {
     setSelectedSector(sector);
@@ -29,24 +74,64 @@ export default function AddStartupPage() {
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
   const canProceedStep1 = startupName.trim();
   const canProceedStep2 = selectedSector !== null;
   const canProceedStep3 = selectedStage !== null;
 
-  const handleSubmit = () => {
-    // TODO: Implement form submission logic
-    console.log({
-      startupName,
-      websiteUrl,
-      sector: selectedSector,
-      stage: selectedStage,
-    });
+  const handleSubmit = async () => {
+    if (
+      !canProceedStep3 ||
+      !startupName.trim() ||
+      !selectedSector ||
+      !selectedStage ||
+      !(files.length > 0)
+    ) {
+      return;
+    }
+
+    if (!startupName.trim()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const trimmedName = startupName.trim();
+      const trimmedWebsiteUrl = websiteUrl.trim();
+
+      const requestBody: any = {
+        name: trimmedName,
+        sector: selectedSector!,
+        websiteUrl: trimmedWebsiteUrl,
+        stage: selectedStage!,
+      };
+
+      const createResponse = await fetch("/api/startup/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!createResponse.ok) {
+        const errorText = await createResponse.text();
+        console.error(
+          "Create startup failed:",
+          createResponse.status,
+          errorText,
+        );
+        throw new Error("Failed to create startup");
+      }
+
+      const { id: newStartupId } = await createResponse.json();
+      setStartupId(newStartupId);
+
+      setWaitingForUploads(true);
+      setShouldUploadFiles(true);
+    } catch (error) {
+      console.error("Submission error:", error);
+      setIsSubmitting(false);
+      setWaitingForUploads(false);
+    }
   };
 
   const renderStepContent = () => {
@@ -154,10 +239,17 @@ export default function AddStartupPage() {
 
         <div className="grid grid-cols-1 gap-6 py-6 md:grid-cols-6 md:gap-8 md:py-8">
           <div className="md:col-span-2">
-            <FileDropzone redirectToUpload={true} />
+            <FileDropzone
+              redirectToUpload={false}
+              startupId={startupId || undefined}
+              onFilesSelected={setFiles}
+              onUploadComplete={setUploadedFiles}
+              disabled={isSubmitting}
+              uploadedFiles={uploadedFiles}
+              shouldUpload={shouldUploadFiles}
+            />
           </div>
           <div className="md:col-span-4">
-            {/* Progress Indicator */}
             <div className="mb-4 flex items-center justify-center space-x-2 md:mb-6">
               {[1, 2, 3].map((step) => (
                 <div
@@ -169,15 +261,14 @@ export default function AddStartupPage() {
               ))}
             </div>
 
-            {/* Step Content */}
             <div className="space-y-4 md:space-y-6">{renderStepContent()}</div>
 
-            {/* Navigation Buttons */}
             <div className="mt-4 md:mt-6">
               {currentStep < 3 ? (
                 <Button
                   onClick={handleNext}
                   disabled={
+                    isSubmitting ||
                     (currentStep === 1 && !canProceedStep1) ||
                     (currentStep === 2 && !canProceedStep2) ||
                     (currentStep === 3 && !canProceedStep3)
@@ -189,10 +280,17 @@ export default function AddStartupPage() {
               ) : (
                 <Button
                   onClick={handleSubmit}
-                  disabled={!canProceedStep3}
+                  disabled={isSubmitting || !canProceedStep3}
                   className="w-full bg-[#296a86] text-white hover:bg-[#296a86]/90 disabled:cursor-not-allowed disabled:bg-gray-300"
                 >
-                  Continue
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    "Continue"
+                  )}
                 </Button>
               )}
             </div>
