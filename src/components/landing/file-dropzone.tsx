@@ -1,42 +1,55 @@
-"use client"
+"use client";
 
-import React from "react"
-import { useDropzone } from "react-dropzone"
+import React from "react";
+import { useDropzone } from "react-dropzone";
+import { useRouter } from "next/navigation";
 
 type FileDropzoneProps = {
-  onFilesSelected?: (files: File[]) => void
-}
+  onFilesSelected?: (files: File[]) => void;
+  redirectToUpload?: boolean;
+};
 
-export default function FileDropzone({ onFilesSelected }: FileDropzoneProps) {
+export default function FileDropzone({
+  onFilesSelected,
+  redirectToUpload = false,
+}: FileDropzoneProps) {
+  const router = useRouter();
+
   const onDrop = React.useCallback(
     (acceptedFiles: File[]) => {
-      if (onFilesSelected) onFilesSelected(acceptedFiles)
-    },
-    [onFilesSelected]
-  )
+      if (onFilesSelected) {
+        onFilesSelected(acceptedFiles);
+      }
 
-  const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone({
-    onDrop,
-    accept: {
-      "application/pdf": [".pdf"],
-      "text/plain": [".txt"],
-      "text/csv": [".csv"],
-      "text/markdown": [".md"],
-      'text/vtt': ['.vtt']
+      if (redirectToUpload && acceptedFiles.length > 0) {
+        router.push("/add-startup");
+      }
     },
-    multiple: true,
-  })
+    [onFilesSelected, redirectToUpload, router],
+  );
+
+  const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
+    useDropzone({
+      onDrop,
+      accept: {
+        "application/pdf": [".pdf"],
+        "text/plain": [".txt"],
+        "text/markdown": [".md"],
+        "text/vtt": [".vtt"],
+      },
+      multiple: true,
+    });
 
   return (
     <div className="flex flex-col gap-3">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors h-56  flex items-center justify-center ${
+        className={`flex h-56 items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
           isDragActive ? "border-black bg-black/10" : "border-black/40"
         }`}
       >
         <input {...getInputProps()} />
-        <p className="text-base font-dmsans  text-black">
+        <p className="font-dmsans text-base text-black">
           {isDragActive
             ? "Drop the files here..."
             : "Choose a file or Drag & Drop (PDF, DOCX, TXT)"}
@@ -45,7 +58,7 @@ export default function FileDropzone({ onFilesSelected }: FileDropzoneProps) {
       {acceptedFiles.length > 0 && (
         <div className="text-xs">
           <div className="mb-1 font-semibold">Selected files:</div>
-          <ul className="list-disc pl-5 space-y-1">
+          <ul className="list-disc space-y-1 pl-5">
             {acceptedFiles.map((file) => (
               <li key={file.name}>{file.name}</li>
             ))}
@@ -53,7 +66,5 @@ export default function FileDropzone({ onFilesSelected }: FileDropzoneProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
-
-

@@ -122,16 +122,41 @@ model Startup {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  dataSources DataSource[]
-  jobs        Job[]
-  teamMembers TeamMember[]
-  keyMetrics  KeyMetric[]
-  marketInfo  MarketInfo? // A startup likely has one primary market analysis.
-  benchmarks  Benchmark[]
-  risks       RiskIndicator[]
-  chatHistory ChatMessage[]
+  dataSources        DataSource[]
+  jobs               Job[]
+  teamMembers        TeamMember[]
+  keyMetrics         KeyMetric[]
+  marketInfo         MarketInfo? // A startup likely has one primary market analysis.
+  benchmarks         Benchmark[]
+  risks              RiskIndicator[]
+  chatHistory        ChatMessage[]
+  OnboardingResponse OnboardingResponse[]
 
   @@index([userId])
+}
+
+enum OnboardingQuestionKey {
+  SECTOR
+  STAGE
+}
+
+/// Stores the structured responses from the VC's onboarding form.
+/// This key-value approach is flexible and avoids schema migrations when questions change.
+model OnboardingResponse {
+  id           String                @id @default(cuid())
+  questionKey  OnboardingQuestionKey /// A unique key for the question, e.g., "sector" or "stage"
+  questionText String /// The full question text, e.g., "What is the core business model?"
+  answerValue  Json /// The answer, stored as JSON to accommodate text, numbers, or arrays (for multi-select).
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // RELATIONS
+  startupId String
+  startup   Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
+
+  @@unique([startupId, questionKey]) // Ensures one answer per question for each startup
+  @@index([startupId])
 }
 
 /// Represents a piece of information uploaded by the user (deck, transcript, url).
