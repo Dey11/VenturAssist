@@ -7,7 +7,7 @@ const AnalyseStartUp = () => {
   return (
     <div className="flex min-w-1/3 flex-col gap-5 rounded-xl bg-white p-5">
       <FileDropzone redirectToUpload={true} />
-      <Link href="/add-a-startup" className="w-full">
+      <Link href="/add-startup" className="w-full">
         <Button variant="brand" className="w-full py-8 text-xl">
           Analyse Startup→
         </Button>

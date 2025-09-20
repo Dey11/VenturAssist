@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useDropzone } from "react-dropzone";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 type FileDropzoneProps = {
   onFilesSelected?: (files: File[]) => void;
@@ -14,6 +14,8 @@ export default function FileDropzone({
   redirectToUpload = false,
 }: FileDropzoneProps) {
   const router = useRouter();
+
+  const pathname = usePathname();
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[]) => {
@@ -44,7 +46,9 @@ export default function FileDropzone({
     <div className="flex flex-col gap-3">
       <div
         {...getRootProps()}
-        className={`flex h-56 items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+        className={`flex ${
+          pathname === "/add-startup" ? "sm:h-[70svh]" : "sm:h-[30svh]"
+        } items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
           isDragActive ? "border-black bg-black/10" : "border-black/40"
         }`}
       >
