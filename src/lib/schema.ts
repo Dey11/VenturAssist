@@ -37,3 +37,8 @@ export const updateStartupSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
 });
+
+export const getFileSchema = z.object({
+  startupId: z.string(),
+  dataSourceId: z.string(),
+});

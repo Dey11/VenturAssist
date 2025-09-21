@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { startupId: string } }
+  { params }: { params: Promise<{ startupId: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -16,11 +16,11 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { startupId } = params;
+    const { startupId } = await params;
     if (!startupId) {
       return NextResponse.json(
         { error: "Startup ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -53,31 +53,65 @@ export async function GET(
             name: true,
             value: true,
             unit: true,
+            reportedDate: true,
             insight: true,
+          },
+        },
+        teamMembers: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            linkedInUrl: true,
+            bioSummary: true,
+          },
+        },
+        marketInfo: {
+          select: {
+            id: true,
+            tam: true,
+            sam: true,
+            som: true,
+            analysis: true,
+          },
+        },
+        jobs: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+        redLensAssessment: {
+          include: {
+            moduleAssessments: {
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
+        competitorAnalysis: {
+          include: {
+            competitors: {
+              orderBy: { similarityScore: "desc" },
+            },
           },
         },
       },
     });
 
     if (!startup) {
-      return NextResponse.json(
-        { error: "Startup not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Startup not found" }, { status: 404 });
     }
 
     return NextResponse.json(startup, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { startupId: string } }
+  { params }: { params: Promise<{ startupId: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -88,11 +122,11 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { startupId } = params;
+    const { startupId } = await params;
     if (!startupId) {
       return NextResponse.json(
         { error: "Startup ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -102,7 +136,7 @@ export async function PUT(
     if (!validatedBody.success) {
       return NextResponse.json(
         { error: "Invalid request body" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -114,10 +148,7 @@ export async function PUT(
     });
 
     if (!existingStartup) {
-      return NextResponse.json(
-        { error: "Startup not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Startup not found" }, { status: 404 });
     }
 
     const updatedStartup = await prisma.startup.update({
@@ -139,14 +170,14 @@ export async function PUT(
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { startupId: string } }
+  { params }: { params: Promise<{ startupId: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -157,11 +188,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { startupId } = params;
+    const { startupId } = await params;
     if (!startupId) {
       return NextResponse.json(
         { error: "Startup ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -173,10 +204,7 @@ export async function DELETE(
     });
 
     if (!existingStartup) {
-      return NextResponse.json(
-        { error: "Startup not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Startup not found" }, { status: 404 });
     }
 
     await prisma.startup.delete({
@@ -189,7 +217,7 @@ export async function DELETE(
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

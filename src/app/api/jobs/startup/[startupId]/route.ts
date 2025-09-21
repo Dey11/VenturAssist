@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // this route is used for long polling in the frontend to get the status of all jobs for a startup -> show some status bar
-export default async function GET(
+export async function GET(
   request: Request,
-  { params }: { params: { startupId: string } },
+  { params }: { params: Promise<{ startupId: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -16,7 +16,7 @@ export default async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { startupId } = params;
+    const { startupId } = await params;
 
     const jobs = await prisma.job.findMany({
       where: { startupId },

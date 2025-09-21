@@ -18,7 +18,7 @@ export async function getSignedUrlForViewing(key: string) {
   return await getSignedUrl(
     S3,
     new GetObjectCommand({
-      Bucket: process.env.CLOUDFLARE_BUCKET_NAME as string,
+      Bucket: (process.env.CLOUDFLARE_BUCKET_NAME as string) || "venturassist",
       Key: key,
     }),
     { expiresIn: 3600 },

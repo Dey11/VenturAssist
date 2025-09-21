@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 // This route is used to get all data sources for a startup.
 export async function GET(
   req: NextRequest,
-  { params }: { params: { startupId: string } },
+  { params }: { params: Promise<{ startupId: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { startupId } = params;
+    const { startupId } = await params;
     if (!startupId) {
       return NextResponse.json(
         { error: "Startup ID is required" },
