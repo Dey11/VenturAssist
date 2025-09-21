@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { createAuthClient } from "better-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 
 const { useSession } = createAuthClient();
 
-const page = () => {
+const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -109,6 +109,28 @@ const page = () => {
         </form>
       </div>
     </div>
+  );
+};
+
+const page = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen flex-col items-center justify-center py-5">
+          <BackgroundEffect />
+          <div className="flex w-full flex-col items-center justify-center gap-7">
+            <h1 className="font-platypi text-brand-primary text-3xl font-semibold md:text-4xl">
+              Welcome back to Venturassist
+            </h1>
+            <div className="font-dmsans text-brand-secondary mx-auto max-w-lg text-center text-xl md:text-2xl md:leading-8">
+              Loading...
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 };
 
