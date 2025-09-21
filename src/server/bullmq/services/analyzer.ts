@@ -29,7 +29,9 @@ const analysisResultSchema = z.object({
         reportedDate: z
           .string()
           .optional()
-          .describe("Date if mentioned (YYYY-MM-DD format)"),
+          .describe(
+            "Date if mentioned (any date format or text, e.g., '2024', 'January 2024', 'Q1 2024', 'Recent')",
+          ),
         insight: z
           .string()
           .optional()
@@ -117,6 +119,7 @@ Guidelines:
 - Only include information that is explicitly mentioned in the content
 - Be conservative with risk assessment - only flag genuine concerns
 - For metrics, extract actual numbers when available from any of the documents
+- For dates, use any valid date format (e.g., "2024", "January 2024", "Q1 2024", "2024-01-15") - they will be normalized
 - For team members, focus on founders and key executives mentioned across all documents
 - Market info should only include TAM/SAM/SOM if specifically mentioned
 - Insights should be actionable and specific to this startup

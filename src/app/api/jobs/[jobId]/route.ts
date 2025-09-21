@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getIngestionJobStatus } from "@/server/bullmq/queues/ingestion-queue";
+import { getRedLensJobStatus } from "@/server/bullmq/queues/redlens-queue";
 
 // Get job status and details
 export async function GET(
@@ -57,27 +58,67 @@ export async function GET(
     // Get queue job status if available
     let queueJobStatus = null;
     try {
-      queueJobStatus = await getIngestionJobStatus(jobId);
+      if (job.type === "EXTRACT_DATA_FROM_SOURCE") {
+        queueJobStatus = await getIngestionJobStatus(jobId);
+      } else if (job.type === "REDLENS_RISK_ASSESSMENT") {
+        queueJobStatus = await getRedLensJobStatus(jobId);
+      }
     } catch (error) {
       console.warn("Could not get queue job status:", error);
     }
 
-    // Calculate progress
-    const totalDataSources = job.dataSources.length;
-    const completedDataSources = job.dataSources.filter(
-      (ds) => ds.status === "COMPLETED",
-    ).length;
-    const failedDataSources = job.dataSources.filter(
-      (ds) => ds.status === "FAILED",
-    ).length;
-    const inProgressDataSources = job.dataSources.filter(
-      (ds) => ds.status === "IN_PROGRESS",
-    ).length;
+    // Calculate progress based on job type
+    let progress = 0;
+    let progressData = {
+      percentage: 0,
+      completed: 0,
+      failed: 0,
+      inProgress: 0,
+      total: 0,
+    };
 
-    const progress =
-      totalDataSources > 0
-        ? (completedDataSources / totalDataSources) * 100
-        : 0;
+    if (job.type === "EXTRACT_DATA_FROM_SOURCE") {
+      // For ingestion jobs, calculate progress based on data sources
+      const totalDataSources = job.dataSources.length;
+      const completedDataSources = job.dataSources.filter(
+        (ds) => ds.status === "COMPLETED",
+      ).length;
+      const failedDataSources = job.dataSources.filter(
+        (ds) => ds.status === "FAILED",
+      ).length;
+      const inProgressDataSources = job.dataSources.filter(
+        (ds) => ds.status === "IN_PROGRESS",
+      ).length;
+
+      progress =
+        totalDataSources > 0
+          ? (completedDataSources / totalDataSources) * 100
+          : 0;
+
+      progressData = {
+        percentage: Math.round(progress),
+        completed: completedDataSources,
+        failed: failedDataSources,
+        inProgress: inProgressDataSources,
+        total: totalDataSources,
+      };
+    } else if (job.type === "REDLENS_RISK_ASSESSMENT") {
+      // For RedLens jobs, progress is based on job status
+      progress =
+        job.status === "COMPLETED"
+          ? 100
+          : job.status === "IN_PROGRESS"
+            ? 50
+            : 0;
+
+      progressData = {
+        percentage: Math.round(progress),
+        completed: job.status === "COMPLETED" ? 1 : 0,
+        failed: job.status === "FAILED" ? 1 : 0,
+        inProgress: job.status === "IN_PROGRESS" ? 1 : 0,
+        total: 1,
+      };
+    }
 
     return NextResponse.json({
       job: {
@@ -94,13 +135,7 @@ export async function GET(
       },
       startup: job.startup,
       dataSources: job.dataSources,
-      progress: {
-        percentage: Math.round(progress),
-        completed: completedDataSources,
-        failed: failedDataSources,
-        inProgress: inProgressDataSources,
-        total: totalDataSources,
-      },
+      progress: progressData,
       queueStatus: queueJobStatus,
     });
   } catch (error) {

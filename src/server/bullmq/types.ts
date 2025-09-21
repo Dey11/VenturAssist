@@ -1,4 +1,8 @@
-import { DataSourceType, JobStatus } from "@/generated/prisma/client";
+import {
+  DataSourceType,
+  JobStatus,
+  RedLensModule,
+} from "@/generated/prisma/client";
 
 // Job data payload for ingestion queue
 export interface IngestionJobData {
@@ -91,4 +95,41 @@ export interface QueueJobOptions {
     type: "fixed" | "exponential";
     delay: number;
   };
+}
+
+// ========================================
+// REDLENS RISK ASSESSMENT TYPES
+// ========================================
+
+// Job data payload for RedLens risk assessment queue
+export interface RedLensJobData {
+  jobId: string;
+  startupId: string;
+  analysisData: {
+    keyMetrics: KeyMetric[];
+    teamMembers: TeamMember[];
+    marketInfo?: MarketInfo;
+    risks: RiskIndicator[];
+    description?: string;
+    finalSummary?: string;
+  };
+}
+
+// Result structure for RedLens risk assessment job
+export interface RedLensJobResult {
+  overallScore: number; // 0-1 (0 = low risk, 1 = high risk)
+  summary: string;
+  recommendation: string;
+  confidenceScore: number; // 0-1
+  moduleAssessments: RedLensModuleAssessmentResult[];
+  completedAt: string;
+}
+
+// Individual module assessment result
+export interface RedLensModuleAssessmentResult {
+  module: RedLensModule;
+  score: number; // 0-1 (0 = low risk, 1 = high risk)
+  findings: string[];
+  recommendations: string[];
+  confidence: number; // 0-1
 }

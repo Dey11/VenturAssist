@@ -1,6 +1,22 @@
 import prisma from "@/lib/prisma";
 import { DataSourceAnalysisResult } from "../types";
 
+// Helper function to safely parse dates
+function safeParseDate(dateString: string | undefined): Date | null {
+  if (!dateString) return null;
+
+  // Try to parse the date
+  const date = new Date(dateString);
+
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    console.warn(`Invalid date string: "${dateString}"`);
+    return null;
+  }
+
+  return date;
+}
+
 // Store the analysis result in the appropriate database tables
 export async function storeAnalysisResult(
   startupId: string,
@@ -18,9 +34,7 @@ export async function storeAnalysisResult(
               name: metric.name,
               value: metric.value,
               unit: metric.unit || null,
-              reportedDate: metric.reportedDate
-                ? new Date(metric.reportedDate)
-                : null,
+              reportedDate: metric.reportedDate || null,
               insight: metric.insight || null,
             },
           });

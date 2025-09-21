@@ -79,6 +79,13 @@ export async function GET(
           orderBy: { createdAt: "desc" },
           take: 1,
         },
+        redLensAssessment: {
+          include: {
+            moduleAssessments: {
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
       },
     });
 

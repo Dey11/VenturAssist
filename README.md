@@ -6,9 +6,10 @@ A Next.js application that uses AI to analyze startup data and provide comprehen
 
 - **Startup Data Collection**: Upload files, text, and URLs for analysis
 - **AI-Powered Analysis**: Uses Google's Gemini AI to extract key metrics, team information, and market insights
+- **RedLens Risk Assessment**: Specialized AI modules (Forensic Accountant, Market Strategist, Talent Scout, Devil's Advocate) for comprehensive risk analysis
 - **Background Processing**: BullMQ-based job queue for scalable data processing
 - **Real-time Progress Tracking**: Live updates on analysis progress
-- **Comprehensive Reports**: Detailed analysis results with risk assessment
+- **Comprehensive Reports**: Detailed analysis results with risk assessment and specialized module insights
 
 ## Tech Stack
 
@@ -90,9 +91,14 @@ BETTER_AUTH_URL="http://localhost:3000"
    pnpm dev
    ```
 
-6. **Start the background worker** (in a separate terminal)
+6. **Start the background workers** (in separate terminals)
+
    ```bash
+   # For data ingestion and analysis
    pnpm worker:ingestion
+
+   # For RedLens risk assessment
+   pnpm worker:redlens
    ```
 
 The application will be available at [http://localhost:3000](http://localhost:3000).
@@ -103,7 +109,9 @@ The application will be available at [http://localhost:3000](http://localhost:30
 
 1. **Start Redis**: `docker compose up -d redis`
 2. **Start Next.js**: `pnpm dev`
-3. **Start Worker**: `pnpm worker:ingestion`
+3. **Start Workers**:
+   - `pnpm worker:ingestion` (for data processing)
+   - `pnpm worker:redlens` (for risk assessment)
 
 ### Available Scripts
 
@@ -111,6 +119,7 @@ The application will be available at [http://localhost:3000](http://localhost:30
 - `pnpm build` - Build the application for production
 - `pnpm start` - Start the production server
 - `pnpm worker:ingestion` - Start the background ingestion worker
+- `pnpm worker:redlens` - Start the RedLens risk assessment worker
 - `pnpm lint` - Run Biome linter
 - `pnpm format` - Format code with Biome
 
@@ -120,8 +129,11 @@ The application will be available at [http://localhost:3000](http://localhost:30
 
 The application uses BullMQ for background job processing:
 
-- **Queue**: `ingestion-queue` - Processes startup data analysis
-- **Worker**: `ingestion-worker` - Handles AI analysis and data extraction
+- **Ingestion Queue**: `ingestion-queue` - Processes startup data analysis
+- **RedLens Queue**: `redlens-queue` - Processes specialized risk assessments
+- **Workers**:
+  - `ingestion-worker` - Handles AI analysis and data extraction
+  - `redlens-worker` - Handles specialized risk assessment modules
 - **Redis**: Message broker and job storage
 
 #### Data Flow
@@ -129,13 +141,19 @@ The application uses BullMQ for background job processing:
 1. User uploads files and provides startup information
 2. Files are uploaded to S3 and metadata stored in database
 3. `/api/data-sources/enqueue-job` creates a job and enqueues it
-4. Background worker processes the job:
+4. Background ingestion worker processes the job:
    - Downloads files from S3 using presigned URLs
    - Analyzes content with Google Gemini AI
    - Extracts structured data (metrics, team, market info, risks)
    - Stores results in database
-5. Frontend polls job status and displays progress
-6. User can view comprehensive analysis results
+5. RedLens risk assessment is automatically triggered:
+   - Four specialized AI modules analyze the data
+   - Forensic Accountant: Financial sustainability and red flags
+   - Market Strategist: Market opportunity and competitive positioning
+   - Talent Scout: Team composition and execution capability
+   - Devil's Advocate: Contrarian view and potential failure points
+6. Frontend polls job status and displays progress
+7. User can view comprehensive analysis results with risk assessment
 
 #### File Structure
 

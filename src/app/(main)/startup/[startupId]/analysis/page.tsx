@@ -61,6 +61,28 @@ interface Benchmark {
   insight: string;
 }
 
+interface RedLensModuleAssessment {
+  id: string;
+  module:
+    | "FORENSIC_ACCOUNTANT"
+    | "MARKET_STRATEGIST"
+    | "TALENT_SCOUT"
+    | "DEVILS_ADVOCATE";
+  score: number;
+  findings: string[];
+  recommendations: string[];
+  confidence: number;
+}
+
+interface RedLensAssessment {
+  id: string;
+  overallScore: number;
+  summary: string;
+  recommendation: string;
+  confidenceScore: number;
+  moduleAssessments: RedLensModuleAssessment[];
+}
+
 interface Startup {
   id: string;
   name: string;
@@ -77,6 +99,7 @@ interface Startup {
   marketInfo?: MarketInfo;
   risks: RiskIndicator[];
   benchmarks: Benchmark[];
+  redLensAssessment?: RedLensAssessment;
 }
 
 export default function AnalysisPage() {
@@ -322,21 +345,21 @@ export default function AnalysisPage() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Key Metrics */}
-          <div className="rounded-lg border bg-white p-6">
+          <div className="flex h-96 flex-col rounded-lg border bg-white p-6">
             <h2 className="mb-4 flex items-center text-xl font-semibold text-gray-900">
               <TrendingUp className="mr-2 h-5 w-5" />
               Key Metrics
             </h2>
             {startup.keyMetrics.length > 0 ? (
-              <div className="space-y-4">
+              <div className="flex-1 space-y-4 overflow-y-auto pr-2">
                 {startup.keyMetrics.map((metric) => (
                   <div key={metric.id} className="rounded-lg border p-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="text-sm font-medium text-gray-900">
                           {metric.name}
                         </h3>
-                        <p className="text-2xl font-bold text-blue-600">
+                        <p className="text-xl font-bold text-blue-600">
                           {metric.value}{" "}
                           {metric.unit && (
                             <span className="text-sm text-gray-500">
@@ -347,7 +370,12 @@ export default function AnalysisPage() {
                         {metric.reportedDate && (
                           <p className="mt-1 flex items-center text-sm text-gray-500">
                             <Calendar className="mr-1 h-3 w-3" />
-                            {new Date(metric.reportedDate).toLocaleDateString()}
+                            {(() => {
+                              const date = new Date(metric.reportedDate);
+                              return !isNaN(date.getTime())
+                                ? date.toLocaleDateString()
+                                : metric.reportedDate;
+                            })()}
                           </p>
                         )}
                       </div>
@@ -361,25 +389,27 @@ export default function AnalysisPage() {
                 ))}
               </div>
             ) : (
-              <p className="py-8 text-center text-gray-500">
-                No key metrics available
-              </p>
+              <div className="flex flex-1 items-center justify-center">
+                <p className="text-center text-gray-500">
+                  No key metrics available
+                </p>
+              </div>
             )}
           </div>
 
           {/* Team Members */}
-          <div className="rounded-lg border bg-white p-6">
+          <div className="flex h-96 flex-col rounded-lg border bg-white p-6">
             <h2 className="mb-4 flex items-center text-xl font-semibold text-gray-900">
               <Users className="mr-2 h-5 w-5" />
               Team Members
             </h2>
             {startup.teamMembers.length > 0 ? (
-              <div className="space-y-4">
+              <div className="flex-1 space-y-4 overflow-y-auto pr-2">
                 {startup.teamMembers.map((member) => (
                   <div key={member.id} className="rounded-lg border p-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="text-sm font-medium text-gray-900">
                           {member.name}
                         </h3>
                         {member.role && (
@@ -406,9 +436,11 @@ export default function AnalysisPage() {
                 ))}
               </div>
             ) : (
-              <p className="py-8 text-center text-gray-500">
-                No team members found
-              </p>
+              <div className="flex flex-1 items-center justify-center">
+                <p className="text-center text-gray-500">
+                  No team members found
+                </p>
+              </div>
             )}
           </div>
 
@@ -527,6 +559,133 @@ export default function AnalysisPage() {
                     </div>
                   </div>
                   <p className="text-sm text-gray-600">{benchmark.insight}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* RedLens Risk Assessment */}
+        {startup.redLensAssessment && (
+          <div className="mt-8 rounded-lg border bg-white p-6">
+            <h2 className="mb-4 flex items-center text-xl font-semibold text-gray-900">
+              <AlertTriangle className="mr-2 h-5 w-5" />
+              RedLens Risk Assessment
+            </h2>
+
+            {/* Overall Assessment */}
+            <div className="mb-6 rounded-lg bg-gray-50 p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Overall Risk Score
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`h-3 w-20 rounded-full ${
+                      startup.redLensAssessment.overallScore < 0.3
+                        ? "bg-green-500"
+                        : startup.redLensAssessment.overallScore < 0.6
+                          ? "bg-yellow-500"
+                          : startup.redLensAssessment.overallScore < 0.8
+                            ? "bg-orange-500"
+                            : "bg-red-500"
+                    }`}
+                  >
+                    <div
+                      className="h-full rounded-full bg-white shadow-sm"
+                      style={{
+                        width: `${(1 - startup.redLensAssessment.overallScore) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-gray-600">
+                    {(startup.redLensAssessment.overallScore * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+              <p className="mb-2 text-sm text-gray-600">
+                {startup.redLensAssessment.summary}
+              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-900">
+                  Recommendation: {startup.redLensAssessment.recommendation}
+                </p>
+                <span className="text-xs text-gray-500">
+                  Confidence:{" "}
+                  {(startup.redLensAssessment.confidenceScore * 100).toFixed(0)}
+                  %
+                </span>
+              </div>
+            </div>
+
+            {/* Module Assessments */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Specialized Module Assessments
+              </h3>
+              {startup.redLensAssessment.moduleAssessments.map((module) => (
+                <div key={module.id} className="rounded-lg border p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-gray-900">
+                      {module.module
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </h4>
+                    <div className="flex items-center space-x-2">
+                      <div
+                        className={`h-2 w-16 rounded-full ${
+                          module.score < 0.3
+                            ? "bg-green-500"
+                            : module.score < 0.6
+                              ? "bg-yellow-500"
+                              : module.score < 0.8
+                                ? "bg-orange-500"
+                                : "bg-red-500"
+                        }`}
+                      >
+                        <div
+                          className="h-full rounded-full bg-white shadow-sm"
+                          style={{ width: `${(1 - module.score) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-gray-600">
+                        {(module.score * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <h5 className="mb-2 text-sm font-medium text-gray-700">
+                        Key Findings
+                      </h5>
+                      <ul className="space-y-1">
+                        {module.findings.slice(0, 3).map((finding, index) => (
+                          <li key={index} className="text-sm text-gray-600">
+                            • {finding}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="mb-2 text-sm font-medium text-gray-700">
+                        Recommendations
+                      </h5>
+                      <ul className="space-y-1">
+                        {module.recommendations
+                          .slice(0, 3)
+                          .map((recommendation, index) => (
+                            <li key={index} className="text-sm text-gray-600">
+                              • {recommendation}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-xs text-gray-500">
+                    Confidence: {(module.confidence * 100).toFixed(0)}%
+                  </div>
                 </div>
               ))}
             </div>

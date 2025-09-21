@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "worker:ingestion": "tsx src/workers/ingestion-worker.ts"
+    "worker:ingestion": "tsx src/workers/ingestion-worker.ts",
+    "worker:redlens": "tsx src/workers/redlens-worker.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.13",
@@ -24,6 +25,7 @@
     "bullmq": "^5.30.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.2",
     "ioredis": "^5.4.1",
     "lucide-react": "^0.544.0",
     "mammoth": "^1.11.0",

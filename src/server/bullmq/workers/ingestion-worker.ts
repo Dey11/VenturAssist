@@ -16,6 +16,58 @@ import {
 import { getDataSourceContent } from "../services/object-storage";
 import { analyzeDataSource } from "../services/analyzer";
 import { storeAnalysisResult } from "../services/analysis-storage";
+import { addRedLensJob } from "../queues/redlens-queue";
+import { JobType } from "@/generated/prisma/client";
+
+/**
+ * Get analysis data for RedLens risk assessment
+ */
+async function getAnalysisDataForRedLens(startupId: string) {
+  const startup = await prisma.startup.findUnique({
+    where: { id: startupId },
+    include: {
+      keyMetrics: true,
+      teamMembers: true,
+      marketInfo: true,
+      risks: true,
+    },
+  });
+
+  if (!startup) {
+    throw new Error(`Startup not found: ${startupId}`);
+  }
+
+  return {
+    keyMetrics: startup.keyMetrics.map((metric) => ({
+      name: metric.name,
+      value: metric.value,
+      unit: metric.unit || undefined,
+      reportedDate: metric.reportedDate || undefined,
+      insight: metric.insight || undefined,
+    })),
+    teamMembers: startup.teamMembers.map((member) => ({
+      name: member.name,
+      role: member.role || undefined,
+      linkedInUrl: member.linkedInUrl || undefined,
+      bioSummary: member.bioSummary || undefined,
+    })),
+    marketInfo: startup.marketInfo
+      ? {
+          tam: startup.marketInfo.tam || undefined,
+          sam: startup.marketInfo.sam || undefined,
+          som: startup.marketInfo.som || undefined,
+          analysis: startup.marketInfo.analysis || undefined,
+        }
+      : undefined,
+    risks: startup.risks.map((risk) => ({
+      riskTitle: risk.riskTitle,
+      explanation: risk.explanation,
+      severity: risk.severity as "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
+    })),
+    description: startup.description || undefined,
+    finalSummary: startup.finalSummary || undefined,
+  };
+}
 
 // Main job processor function
 async function processIngestionJob(
@@ -249,6 +301,45 @@ async function processIngestionJob(
         overallStatus: finalStatus,
       },
     });
+
+    // If ingestion was successful, trigger RedLens risk assessment
+    if (hasSuccessfulAnalysis) {
+      try {
+        console.log(
+          `Triggering RedLens risk assessment for startup ${startupId}`,
+        );
+
+        // Get the analysis data for RedLens
+        const analysisData = await getAnalysisDataForRedLens(startupId);
+
+        // Create a RedLens job
+        const redLensJob = await prisma.job.create({
+          data: {
+            type: JobType.REDLENS_RISK_ASSESSMENT,
+            status: JobStatus.PENDING,
+            startupId,
+            payload: { startupId, analysisData },
+          },
+        });
+
+        // Add the job to the RedLens queue
+        await addRedLensJob({
+          jobId: redLensJob.id,
+          startupId,
+          analysisData,
+        });
+
+        console.log(
+          `RedLens job ${redLensJob.id} queued for startup ${startupId}`,
+        );
+      } catch (error) {
+        console.error(
+          `Failed to trigger RedLens assessment for startup ${startupId}:`,
+          error,
+        );
+        // Don't fail the ingestion job if RedLens trigger fails
+      }
+    }
 
     console.log(
       `Completed ingestion job ${jobId}: ${totalProcessed} processed, ${totalFailed} failed`,

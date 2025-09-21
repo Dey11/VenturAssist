@@ -19,6 +19,7 @@ enum JobType {
   BENCHMARK_AGAINST_PEERS
   GENERATE_RISK_ANALYSIS
   GENERATE_FINAL_SUMMARY
+  REDLENS_RISK_ASSESSMENT
 }
 
 /// Represents the status of any asynchronous job.
@@ -44,6 +45,14 @@ enum RiskSeverity {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+/// RedLens specialized risk assessment modules.
+enum RedLensModule {
+  FORENSIC_ACCOUNTANT
+  MARKET_STRATEGIST
+  TALENT_SCOUT
+  DEVILS_ADVOCATE
 }
 
 model User {
@@ -131,6 +140,7 @@ model Startup {
   risks              RiskIndicator[]
   chatHistory        ChatMessage[]
   OnboardingResponse OnboardingResponse[]
+  redLensAssessment  RedLensAssessment?
 
   @@index([userId])
 }
@@ -232,11 +242,11 @@ model TeamMember {
 
 /// Stores key metrics (e.g., MRR, Churn) extracted from sources.
 model KeyMetric {
-  id           String    @id @default(cuid())
+  id           String  @id @default(cuid())
   name         String /// e.g., "Monthly Recurring Revenue"
   value        String /// Stored as string to accommodate formats like "$50k" or "20%".
   unit         String? /// e.g., "USD", "%"
-  reportedDate DateTime? /// Date the metric was reported, if available.
+  reportedDate String? /// Date the metric was reported, if available (stored as string for flexibility).
   insight      String? /// AI-generated comment on the metric's significance.
 
   createdAt DateTime @default(now())
@@ -322,4 +332,48 @@ model ChatMessage {
   startup   Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
 
   @@index([startupId])
+}
+
+// ----------------------------------------
+// REDLENS RISK ASSESSMENT MODELS
+// ----------------------------------------
+
+/// Stores comprehensive risk assessment results from RedLens modules.
+model RedLensAssessment {
+  id              String  @id @default(cuid())
+  overallScore    Float? /// Overall risk score from 0-1 (0 = low risk, 1 = high risk)
+  summary         String? /// Executive summary of all risk findings
+  recommendation  String? /// Final recommendation based on risk assessment
+  confidenceScore Float? /// Confidence in the assessment (0-1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // RELATIONS
+  startupId String  @unique // Each startup has only one RedLens assessment
+  startup   Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
+
+  moduleAssessments RedLensModuleAssessment[]
+
+  @@index([startupId])
+}
+
+/// Stores individual module assessment results.
+model RedLensModuleAssessment {
+  id              String        @id @default(cuid())
+  module          RedLensModule /// Which specialized module performed this assessment
+  score           Float? /// Module-specific risk score (0-1)
+  findings        String[] /// Array of specific findings/risks identified
+  recommendations String[] /// Array of recommendations from this module
+  confidence      Float? /// Confidence in this module's assessment (0-1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // RELATIONS
+  redLensAssessmentId String
+  redLensAssessment   RedLensAssessment @relation(fields: [redLensAssessmentId], references: [id], onDelete: Cascade)
+
+  @@index([redLensAssessmentId])
+  @@index([module])
 }
