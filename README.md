@@ -1,61 +1,115 @@
-# GenAI Hack - Startup Analysis Platform
+# Venturassist - AI-Powered VC Analysis Platform
 
-A Next.js application that uses AI to analyze startup data and provide comprehensive insights for investors and entrepreneurs.
+> **Your AI VC Analyst** - Revolutionizing startup evaluation through intelligent document analysis, competitive intelligence, and risk assessment.
 
-## Features
+## 🚀 Overview
 
-- **Startup Data Collection**: Upload files, text, and URLs for analysis
-- **AI-Powered Analysis**: Uses Google's Gemini AI to extract key metrics, team information, and market insights
-- **RedLens Risk Assessment**: Specialized AI modules (Forensic Accountant, Market Strategist, Talent Scout, Devil's Advocate) for comprehensive risk analysis
-- **Background Processing**: BullMQ-based job queue for scalable data processing
-- **Real-time Progress Tracking**: Live updates on analysis progress
-- **Comprehensive Reports**: Detailed analysis results with risk assessment and specialized module insights
+Venturassist is an advanced AI-powered platform that automates and enhances the venture capital due diligence process. By leveraging cutting-edge AI agents and comprehensive data analysis, we transform how VCs evaluate startup opportunities, providing deep insights, competitive analysis, and risk assessments that would traditionally take weeks to compile.
 
-## Tech Stack
+## 🏗️ System Architecture
 
-- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, Prisma ORM, PostgreSQL
-- **Queue System**: BullMQ with Redis
-- **AI**: Vercel AI SDK with Google Gemini
-- **Authentication**: Better Auth
-- **File Storage**: AWS S3
-- **Styling**: Shadcn/ui components
+Our platform employs a sophisticated multi-agent architecture that processes startup pitch decks and documents through three specialized AI agents:
 
-## Getting Started
+### 🔄 Processing Flow
+
+```mermaid
+graph TD
+    A[User Uploads Pitch Deck] --> B[BetterAuth Authentication]
+    B --> C[Store Files in Cloudflare R2]
+    C --> D[Store Metadata in PostgreSQL]
+    D --> E[Ingestion Queue - BullMQ]
+    E --> F[Ingestion Agent]
+    F --> G[Extract & Structure Data]
+    G --> H[AI Analysis & Storage]
+    H --> I[Trigger RedLens Agent]
+    H --> J[Trigger Competitor Agent]
+    I --> K[Risk Assessment Report]
+    J --> L[Competitive Analysis Report]
+    K --> M[Merge Reports]
+    L --> M
+    M --> N[Present to VC]
+
+    O[VC Chat Interface] --> P[Chatbot Agent]
+    P --> Q[Query Database]
+    Q --> R[Return Insights]
+```
+
+### 🤖 AI Agents
+
+#### 1. **Ingestion Agent**
+
+- **Purpose**: Document processing and data extraction
+- **Capabilities**:
+  - Processes PDF, PPTX, and text documents
+  - Extracts structured data (metrics, team info, market data)
+  - Performs initial AI analysis and risk identification
+  - Triggers downstream analysis agents
+
+#### 2. **RedLens Risk Assessment Agent**
+
+- **Purpose**: Comprehensive risk analysis through specialized modules
+- **Modules**:
+  - **Forensic Accountant**: Financial sustainability and red flags
+  - **Market Strategist**: Market opportunity and competitive positioning
+  - **Talent Scout**: Team composition and execution capability
+  - **Devil's Advocate**: Contrarian analysis and failure point identification
+- **Output**: Risk scores, findings, and investment recommendations
+
+#### 3. **Competitor Analysis Agent**
+
+- **Purpose**: Competitive intelligence and market positioning
+- **Capabilities**:
+  - Identifies direct and indirect competitors
+  - Analyzes competitive advantages and threats
+  - Provides market positioning insights
+  - Generates strategic recommendations
+
+## 🛠️ Tech Stack
+
+### **Frontend & Framework**
+
+- **Next.js 15** with App Router and Server Actions
+- **React 19** with TypeScript
+- **Tailwind CSS** for styling
+- **Shadcn/ui** component library
+- **Lucide React** for icons
+
+### **Backend & Infrastructure**
+
+- **Node.js** with TypeScript
+- **Prisma ORM** with PostgreSQL database
+- **BullMQ** for job queue management
+- **Redis** for queue persistence and caching
+- **BetterAuth** for authentication
+- **Cloudflare R2** for file storage
+
+### **AI & Processing**
+
+- **Google Gemini 2.5 Flash** for AI analysis
+- **AI SDK** for structured AI interactions
+- **Zod** for data validation and schemas
+- **Mammoth** for Word document processing
+- **PDF-Parse** for PDF text extraction
+- **PPTX2JSON** for PowerPoint processing
+
+### **Development & Quality**
+
+- **Biome** for linting and formatting
+- **Prettier** for code formatting
+- **Docker Compose** for local development
+- **pnpm** for package management
+
+## 🏃‍♂️ Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- pnpm (recommended) or npm
+- pnpm
 - Docker and Docker Compose
 - PostgreSQL database
-- AWS S3 bucket (for file storage)
+- Redis instance
+- Cloudflare R2 account (for file storage)
 - Google AI API key
-
-### Environment Variables
-
-Create a `.env.local` file in the root directory:
-
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/genaihack"
-
-# Redis (for BullMQ)
-REDIS_URL="redis://localhost:6379"
-
-# AI
-GOOGLE_AI_API_KEY="your-google-ai-api-key"
-
-# AWS S3
-AWS_ACCESS_KEY_ID="your-aws-access-key"
-AWS_SECRET_ACCESS_KEY="your-aws-secret-key"
-AWS_REGION="your-aws-region"
-AWS_S3_BUCKET="your-s3-bucket-name"
-
-# Authentication
-BETTER_AUTH_SECRET="your-auth-secret"
-BETTER_AUTH_URL="http://localhost:3000"
-```
 
 ### Installation
 
@@ -72,148 +126,163 @@ BETTER_AUTH_URL="http://localhost:3000"
    pnpm install
    ```
 
-3. **Start Redis with Docker Compose**
+3. **Set up environment variables**
 
    ```bash
-   docker compose up -d redis
+   cp example.env .env.local
    ```
 
-4. **Set up the database**
+   Configure the following variables:
+
+   ```env
+   # Database
+   DATABASE_URL="postgresql://username:password@localhost:5432/venturassist"
+
+   # Redis
+   REDIS_URL="redis://localhost:6379"
+
+   # AI
+   GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-key"
+
+   # File Storage
+   CLOUDFLARE_R2_ACCESS_KEY_ID="your-r2-access-key"
+   CLOUDFLARE_R2_SECRET_ACCESS_KEY="your-r2-secret-key"
+   CLOUDFLARE_R2_BUCKET_NAME="your-bucket-name"
+   CLOUDFLARE_R2_ENDPOINT="your-r2-endpoint"
+
+   # Authentication
+   BETTER_AUTH_SECRET="your-auth-secret"
+   BETTER_AUTH_URL="http://localhost:3000"
+   ```
+
+4. **Start infrastructure services**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+5. **Set up the database**
 
    ```bash
    pnpm prisma generate
    pnpm prisma db push
    ```
 
-5. **Start the development server**
+6. **Start the development server**
 
    ```bash
    pnpm dev
    ```
 
-6. **Start the background workers** (in separate terminals)
+7. **Start the AI workers** (in separate terminals)
 
    ```bash
-   # For data ingestion and analysis
+   # Ingestion worker
    pnpm worker:ingestion
 
-   # For RedLens risk assessment
+   # RedLens risk assessment worker
    pnpm worker:redlens
+
+   # Competitor analysis worker
+   pnpm worker:competitor
    ```
 
-The application will be available at [http://localhost:3000](http://localhost:3000).
+The application will be available at `http://localhost:3000`.
 
-## Development Workflow
+## 📊 Key Features
 
-### Running the Application
+### **Document Processing**
 
-1. **Start Redis**: `docker compose up -d redis`
-2. **Start Next.js**: `pnpm dev`
-3. **Start Workers**:
-   - `pnpm worker:ingestion` (for data processing)
-   - `pnpm worker:redlens` (for risk assessment)
+- Multi-format support (PDF, PPTX, DOCX, text)
+- Intelligent content extraction and structuring
+- Automated data validation and cleaning
 
-### Available Scripts
+### **AI-Powered Analysis**
 
-- `pnpm dev` - Start Next.js development server
-- `pnpm build` - Build the application for production
-- `pnpm start` - Start the production server
-- `pnpm worker:ingestion` - Start the background ingestion worker
-- `pnpm worker:redlens` - Start the RedLens risk assessment worker
-- `pnpm lint` - Run Biome linter
-- `pnpm format` - Format code with Biome
+- Structured data extraction from unstructured documents
+- Multi-modal analysis combining text, metrics, and market data
+- Real-time web search integration for market intelligence
 
-### Architecture
+### **Risk Assessment (RedLens)**
 
-#### Background Processing
+- Four specialized analysis modules
+- Comprehensive risk scoring and recommendations
+- Confidence-based assessment reporting
 
-The application uses BullMQ for background job processing:
+### **Competitive Intelligence**
 
-- **Ingestion Queue**: `ingestion-queue` - Processes startup data analysis
-- **RedLens Queue**: `redlens-queue` - Processes specialized risk assessments
-- **Workers**:
-  - `ingestion-worker` - Handles AI analysis and data extraction
-  - `redlens-worker` - Handles specialized risk assessment modules
-- **Redis**: Message broker and job storage
+- Automated competitor discovery and analysis
+- Market positioning assessment
+- Strategic recommendation generation
 
-#### Data Flow
+### **Interactive Chat Interface**
 
-1. User uploads files and provides startup information
-2. Files are uploaded to S3 and metadata stored in database
-3. `/api/data-sources/enqueue-job` creates a job and enqueues it
-4. Background ingestion worker processes the job:
-   - Downloads files from S3 using presigned URLs
-   - Analyzes content with Google Gemini AI
-   - Extracts structured data (metrics, team, market info, risks)
-   - Stores results in database
-5. RedLens risk assessment is automatically triggered:
-   - Four specialized AI modules analyze the data
-   - Forensic Accountant: Financial sustainability and red flags
-   - Market Strategist: Market opportunity and competitive positioning
-   - Talent Scout: Team composition and execution capability
-   - Devil's Advocate: Contrarian view and potential failure points
-6. Frontend polls job status and displays progress
-7. User can view comprehensive analysis results with risk assessment
+- Natural language querying of analysis results
+- Context-aware responses based on startup data
+- Real-time insights and recommendations
 
-#### File Structure
+### **Scalable Architecture**
 
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── (auth)/            # Authentication pages
-│   ├── (main)/            # Main application pages
-│   └── api/               # API routes
-├── components/            # React components
-├── lib/                   # Utilities and configurations
-├── server/                # Server-side code
-│   └── bullmq/           # Queue system
-│       ├── config.ts     # BullMQ configuration
-│       ├── types.ts      # Type definitions
-│       ├── queues/       # Queue implementations
-│       ├── services/     # Business logic services
-│       └── workers/      # Background workers
-└── workers/              # Worker entry points
-```
+- Queue-based processing for handling multiple analyses
+- Horizontal scaling capabilities
+- Robust error handling and retry mechanisms
 
-## Deployment
+## 🎯 Problem We're Solving
 
-### Production Setup
+Traditional VC due diligence is:
 
-1. **Environment Variables**: Set all required environment variables
-2. **Database**: Set up PostgreSQL database
-3. **Redis**: Set up Redis instance (can use managed service)
-4. **File Storage**: Configure AWS S3 bucket
-5. **Worker Process**: Deploy worker as separate process/service
+- **Time-intensive**: Weeks of manual analysis per startup
+- **Inconsistent**: Varies based on analyst experience and bias
+- **Incomplete**: Limited by human capacity to process information
+- **Expensive**: Requires dedicated analyst teams
 
-### Docker Deployment
+Venturassist addresses these challenges by:
 
-```bash
-# Build and start all services
-docker compose up -d
+- **Automating** the initial analysis process
+- **Standardizing** evaluation criteria across all assessments
+- **Enhancing** human decision-making with AI insights
+- **Scaling** analysis capacity without proportional cost increases
 
-# Or build production image
-docker build -t genaihack .
-docker run -p 3000:3000 genaihack
-```
+## 👥 Team
 
-### Vercel Deployment
+- **Shreyan Dey** - Lead Developer & System Architecture
+- **Prasad Ware** - AI/ML Engineering & Agent Development
+- **Saher Pathan** - Backend Development & Infrastructure
+- **Sagarika Paul** - Frontend Development & UX/UI
+- **Meghana** - Product Strategy & Business Development
 
-The application is optimized for Vercel deployment:
+## 🚀 Future Roadmap
 
-1. Connect your repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+### **Short-term Optimizations**
 
-**Note**: Background workers need to be deployed separately (e.g., on Railway, Render, or similar service).
+- **Flow Optimization**: Streamline processing pipelines for faster analysis
+- **Enhanced UI/UX**: Redesign interfaces for better user experience
+- **Performance Tuning**: Optimize AI model usage and response times
 
-## Contributing
+### **Advanced Agent Capabilities**
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+- **Gmail Integration**: Enable agents to access and analyze email communications
+- **Calling Tools**: Implement voice-based startup interviews and assessments
+- **Real-time Collaboration**: Multi-user analysis and commenting features
 
-## License
+### **Expanded Analysis Modules**
 
-This project is licensed under the MIT License.
+- **Legal Compliance Agent**: Regulatory and legal risk assessment
+- **Technology Assessment Agent**: Technical architecture and scalability analysis
+- **Market Timing Agent**: Industry trends and timing analysis
+
+### **Enterprise Features**
+
+- **Multi-tenant Architecture**: Support for multiple VC firms
+- **Custom Agent Training**: Firm-specific analysis criteria
+- **Advanced Analytics**: Portfolio-level insights and benchmarking
+
+## 📈 Impact & Vision
+
+Venturassist represents the future of venture capital analysis, where AI augments human expertise to deliver faster, more comprehensive, and more accurate startup evaluations. By democratizing access to sophisticated analysis tools, we're enabling VCs to make better investment decisions while reducing the time and cost of due diligence.
+
+Our vision is to become the standard platform for AI-powered startup analysis, transforming how the venture capital industry evaluates and invests in the next generation of innovative companies.
+
+---
+
+_Built with ❤️ by the Venturassist team_
