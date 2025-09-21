@@ -9,6 +9,7 @@ Venturassist is an advanced AI-powered platform that automates and enhances the 
 ## 🏗️ System Architecture
 
 Our platform employs a sophisticated multi-agent architecture that processes startup pitch decks and documents through three specialized AI agents:
+<img width="5837" height="1874" alt="image" src="https://github.com/user-attachments/assets/f9edd819-17fc-4142-b3c7-e1ccff219ca1" />
 
 ### 🔄 Processing Flow
 
@@ -33,6 +34,8 @@ graph TD
     P --> Q[Query Database]
     Q --> R[Return Insights]
 ```
+<img width="1433" height="716" alt="image" src="https://github.com/user-attachments/assets/4dfb74b8-c261-4ed2-b81d-05e4a8c00ec8" />
+
 
 ### 🤖 AI Agents
 
@@ -64,25 +67,6 @@ graph TD
   - Provides market positioning insights
   - Generates strategic recommendations
 
-## 🛠️ Tech Stack
-
-### **Frontend & Framework**
-
-- **Next.js 15** with App Router and Server Actions
-- **React 19** with TypeScript
-- **Tailwind CSS** for styling
-- **Shadcn/ui** component library
-- **Lucide React** for icons
-
-### **Backend & Infrastructure**
-
-- **Node.js** with TypeScript
-- **Prisma ORM** with PostgreSQL database
-- **BullMQ** for job queue management
-- **Redis** for queue persistence and caching
-- **BetterAuth** for authentication
-- **Cloudflare R2** for file storage
-
 ### **AI & Processing**
 
 - **Google Gemini 2.5 Flash** for AI analysis
@@ -91,13 +75,6 @@ graph TD
 - **Mammoth** for Word document processing
 - **PDF-Parse** for PDF text extraction
 - **PPTX2JSON** for PowerPoint processing
-
-### **Development & Quality**
-
-- **Biome** for linting and formatting
-- **Prettier** for code formatting
-- **Docker Compose** for local development
-- **pnpm** for package management
 
 ## 🏃‍♂️ Getting Started
 
