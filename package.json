@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.13",
+    "@ai-sdk/openai": "^2.0.32",
     "@ai-sdk/react": "^2.0.40",
     "@aws-sdk/client-s3": "^3.890.0",
     "@aws-sdk/s3-request-presigner": "^3.890.0",
@@ -23,6 +24,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",
+    "markdown-it": "^14.1.0",
     "next": "15.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -33,6 +35,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
     "@tailwindcss/postcss": "^4",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
