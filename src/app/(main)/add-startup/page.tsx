@@ -14,12 +14,6 @@ export default function AddStartupPage() {
   const { data: session } = authClient.useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!session) {
-      router.push("/login");
-    }
-  }, [session, router]);
-
   const [currentStep, setCurrentStep] = useState(1);
   const [startupName, setStartupName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
@@ -32,33 +26,57 @@ export default function AddStartupPage() {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [shouldUploadFiles, setShouldUploadFiles] = useState(false);
   const [waitingForUploads, setWaitingForUploads] = useState(false);
+  const [hasEnqueuedJob, setHasEnqueuedJob] = useState(false);
+  const [enqueueError, setEnqueueError] = useState<string | null>(null);
+  const [isEnqueuing, setIsEnqueuing] = useState(false);
 
   const [errors, setErrors] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+  }, [session, router]);
 
   React.useEffect(() => {
     if (
       waitingForUploads &&
       startupId &&
-      uploadedFiles.length >= files.length
+      uploadedFiles.length >= files.length &&
+      !hasEnqueuedJob &&
+      !isEnqueuing
     ) {
-      console.log("All uploads complete, redirecting...");
-      router.push(`/startup/${startupId}/processing`);
+      console.log("All uploads complete, enqueuing job...");
+      enqueueIngestionJob();
     }
   }, [
     waitingForUploads,
     startupId,
     uploadedFiles.length,
     files.length,
-    router,
+    hasEnqueuedJob,
+    isEnqueuing,
   ]);
+
+  React.useEffect(() => {
+    if (hasEnqueuedJob && startupId) {
+      console.log("Job enqueued successfully, redirecting...");
+      router.push(`/startup/${startupId}/processing`);
+    }
+  }, [hasEnqueuedJob, startupId, router]);
 
   React.useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
-    if (waitingForUploads && startupId) {
+    if (waitingForUploads && startupId && !hasEnqueuedJob) {
       timeoutId = setTimeout(() => {
-        console.warn("Upload timeout reached, redirecting anyway...");
-        router.push(`/startup/${startupId}/processing`);
+        console.warn(
+          "Upload timeout reached, attempting to enqueue job anyway...",
+        );
+        if (!isEnqueuing) {
+          enqueueIngestionJob();
+        }
       }, 30000); // 30 seconds timeout
     }
 
@@ -67,7 +85,7 @@ export default function AddStartupPage() {
         clearTimeout(timeoutId);
       }
     };
-  }, [waitingForUploads, startupId, router]);
+  }, [waitingForUploads, startupId, hasEnqueuedJob, isEnqueuing]);
 
   const handleSectorChange = (sector: Sector) => {
     setSelectedSector(sector);
@@ -75,6 +93,51 @@ export default function AddStartupPage() {
 
   const handleStageChange = (stage: Stage) => {
     setSelectedStage(stage);
+  };
+
+  const enqueueIngestionJob = async () => {
+    if (!startupId || isEnqueuing) {
+      return;
+    }
+
+    setIsEnqueuing(true);
+    setEnqueueError(null);
+
+    try {
+      const response = await fetch("/api/data-sources/enqueue-job", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          startupId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to enqueue job");
+      }
+
+      const result = await response.json();
+      console.log("Job enqueued successfully:", result);
+      setHasEnqueuedJob(true);
+    } catch (error) {
+      console.error("Error enqueuing job:", error);
+      setEnqueueError(
+        error instanceof Error ? error.message : "Failed to enqueue job",
+      );
+
+      // Retry after a delay
+      setTimeout(() => {
+        if (!hasEnqueuedJob) {
+          console.log("Retrying job enqueue...");
+          enqueueIngestionJob();
+        }
+      }, 2000);
+    } finally {
+      setIsEnqueuing(false);
+    }
   };
 
   const handleNext = () => {
@@ -257,6 +320,25 @@ export default function AddStartupPage() {
               uploadedFiles={uploadedFiles}
               shouldUpload={shouldUploadFiles}
             />
+
+            {/* Show enqueuing status */}
+            {waitingForUploads && (
+              <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-center space-x-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                  <span className="text-sm font-medium text-blue-800">
+                    {isEnqueuing
+                      ? "Preparing analysis..."
+                      : "Uploading files..."}
+                  </span>
+                </div>
+                {enqueueError && (
+                  <p className="mt-2 text-sm text-red-600">
+                    Error: {enqueueError}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <div className="md:col-span-4">
             <div className="mb-4 flex items-center justify-center space-x-2 md:mb-6">
