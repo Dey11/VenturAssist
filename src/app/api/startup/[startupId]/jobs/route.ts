@@ -53,22 +53,56 @@ export async function GET(
     const redLensJob = jobs.find(
       (job) => job.type === JobType.REDLENS_RISK_ASSESSMENT,
     );
+    const competitorJob = jobs.find(
+      (job) => job.type === JobType.COMPETITOR_ANALYSIS,
+    );
 
     let overallProgress = 0;
     let overallStatus: JobStatus = JobStatus.NOT_STARTED;
     let currentStep = "Initializing...";
 
-    if (ingestionJob && redLensJob) {
-      // Both jobs exist
+    if (ingestionJob && redLensJob && competitorJob) {
+      // All three jobs exist
+      const ingestionComplete = ingestionJob.status === JobStatus.COMPLETED;
+      const redLensComplete = redLensJob.status === JobStatus.COMPLETED;
+      const competitorComplete = competitorJob.status === JobStatus.COMPLETED;
+
+      if (ingestionComplete && redLensComplete && competitorComplete) {
+        overallProgress = 100;
+        overallStatus = JobStatus.COMPLETED;
+        currentStep = "Analysis complete!";
+      } else if (ingestionComplete && !redLensComplete && !competitorComplete) {
+        overallProgress = 33;
+        overallStatus = JobStatus.IN_PROGRESS;
+        currentStep = "Running risk assessment and competitor analysis...";
+      } else if (ingestionComplete && (redLensComplete || competitorComplete)) {
+        overallProgress = 66;
+        overallStatus = JobStatus.IN_PROGRESS;
+        currentStep = "Completing final analysis...";
+      } else {
+        overallProgress = Math.min(
+          33,
+          ingestionJob.status === JobStatus.IN_PROGRESS ? 16 : 0,
+        );
+        overallStatus = ingestionJob.status;
+        currentStep = "Processing uploaded files...";
+      }
+    } else if (ingestionJob && redLensJob) {
+      // Only ingestion and RedLens jobs exist (competitor job not created yet)
       const ingestionComplete = ingestionJob.status === JobStatus.COMPLETED;
       const redLensComplete = redLensJob.status === JobStatus.COMPLETED;
 
       if (ingestionComplete && redLensComplete) {
-        overallProgress = 100;
-        overallStatus = JobStatus.COMPLETED;
-        currentStep = "Analysis complete!";
+        // Don't mark as completed yet - wait for competitor job to be created
+        overallProgress = 66;
+        overallStatus = JobStatus.IN_PROGRESS;
+        currentStep =
+          "Risk assessment complete, starting competitor analysis...";
+        console.log(
+          "Ingestion and RedLens completed but no competitor job yet - waiting for competitor job creation",
+        );
       } else if (ingestionComplete && !redLensComplete) {
-        overallProgress = 75;
+        overallProgress = 50;
         overallStatus = redLensJob.status;
         currentStep = "Running risk assessment...";
       } else {
@@ -82,23 +116,32 @@ export async function GET(
     } else if (ingestionJob) {
       // Only ingestion job exists
       if (ingestionJob.status === JobStatus.COMPLETED) {
-        overallProgress = 50;
-        overallStatus = JobStatus.IN_PROGRESS; // Keep as IN_PROGRESS until RedLens completes
-        currentStep = "Data processing complete, risk assessment starting...";
+        overallProgress = 33;
+        overallStatus = JobStatus.IN_PROGRESS; // Keep as IN_PROGRESS until other jobs complete
+        currentStep = "Data processing complete, starting analysis...";
         console.log(
-          "Ingestion completed but no RedLens job yet - waiting for RedLens job creation",
+          "Ingestion completed but no analysis jobs yet - waiting for job creation",
         );
       } else {
         overallProgress =
-          ingestionJob.status === JobStatus.IN_PROGRESS ? 25 : 0;
+          ingestionJob.status === JobStatus.IN_PROGRESS ? 16 : 0;
         overallStatus = ingestionJob.status;
         currentStep = "Processing uploaded files...";
       }
-    } else if (redLensJob) {
-      // Only RedLens job exists (shouldn't happen normally)
-      overallProgress = redLensJob.status === JobStatus.COMPLETED ? 100 : 50;
-      overallStatus = redLensJob.status;
-      currentStep = "Running risk assessment...";
+    } else if (redLensJob || competitorJob) {
+      // Only analysis jobs exist (shouldn't happen normally)
+      const redLensComplete = redLensJob?.status === JobStatus.COMPLETED;
+      const competitorComplete = competitorJob?.status === JobStatus.COMPLETED;
+
+      if (redLensComplete && competitorComplete) {
+        overallProgress = 100;
+        overallStatus = JobStatus.COMPLETED;
+        currentStep = "Analysis complete!";
+      } else {
+        overallProgress = 50;
+        overallStatus = JobStatus.IN_PROGRESS;
+        currentStep = "Running analysis...";
+      }
     }
 
     const response = {
@@ -108,8 +151,10 @@ export async function GET(
       currentStep,
       hasIngestionJob: !!ingestionJob,
       hasRedLensJob: !!redLensJob,
+      hasCompetitorJob: !!competitorJob,
       ingestionJobStatus: ingestionJob?.status || null,
       redLensJobStatus: redLensJob?.status || null,
+      competitorJobStatus: competitorJob?.status || null,
     };
 
     console.log("Jobs API Response:", {

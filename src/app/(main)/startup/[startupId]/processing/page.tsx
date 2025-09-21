@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { JobStatus } from "@/generated/prisma/client";
-import { FileText, AlertTriangle } from "lucide-react";
+import { FileText, AlertTriangle, Target } from "lucide-react";
 
 interface JobData {
   id: string;
@@ -56,8 +56,10 @@ interface StartupJobsResponse {
   currentStep: string;
   hasIngestionJob: boolean;
   hasRedLensJob: boolean;
+  hasCompetitorJob: boolean;
   ingestionJobStatus: JobStatus | null;
   redLensJobStatus: JobStatus | null;
+  competitorJobStatus: JobStatus | null;
 }
 
 export default function ProcessingPage() {
@@ -170,17 +172,33 @@ export default function ProcessingPage() {
 
     // Redirect to analysis page when overall analysis is completed successfully
     if (startupJobs && startupJobs.overallStatus === JobStatus.COMPLETED) {
-      console.log("Analysis completed, redirecting in 2 seconds...", {
+      // Double-check that all three jobs are actually completed
+      const allJobsComplete =
+        startupJobs.ingestionJobStatus === JobStatus.COMPLETED &&
+        startupJobs.redLensJobStatus === JobStatus.COMPLETED &&
+        startupJobs.hasCompetitorJob && // Ensure competitor job exists
+        startupJobs.competitorJobStatus === JobStatus.COMPLETED;
+
+      console.log("Checking if analysis is complete...", {
         overallStatus: startupJobs.overallStatus,
         overallProgress: startupJobs.overallProgress,
         hasIngestionJob: startupJobs.hasIngestionJob,
         hasRedLensJob: startupJobs.hasRedLensJob,
+        hasCompetitorJob: startupJobs.hasCompetitorJob,
         ingestionJobStatus: startupJobs.ingestionJobStatus,
         redLensJobStatus: startupJobs.redLensJobStatus,
+        competitorJobStatus: startupJobs.competitorJobStatus,
+        allJobsComplete,
       });
-      setTimeout(() => {
-        router.push(`/startup/${startupId}/analysis`);
-      }, 2000); // Wait 2 seconds to show completion status
+
+      // Only redirect if all three jobs are actually completed
+      if (allJobsComplete) {
+        setTimeout(() => {
+          router.push(`/startup/${startupId}/analysis`);
+        }, 2000); // Wait 2 seconds to show completion status
+      } else {
+        console.log("Not all jobs are complete yet, waiting...");
+      }
     }
 
     return () => {
@@ -385,6 +403,33 @@ export default function ProcessingPage() {
                     >
                       {getStatusText(
                         startupJobs.redLensJobStatus || JobStatus.NOT_STARTED,
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Competitor Analysis Job */}
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      <Target className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">
+                        Competitor Analysis
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Discovering and analyzing competitors
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span
+                      className={`rounded-full px-3 py-1 text-sm font-medium ${getStatusColor(startupJobs.competitorJobStatus || JobStatus.NOT_STARTED)}`}
+                    >
+                      {getStatusText(
+                        startupJobs.competitorJobStatus ||
+                          JobStatus.NOT_STARTED,
                       )}
                     </span>
                   </div>

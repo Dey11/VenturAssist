@@ -133,3 +133,50 @@ export interface RedLensModuleAssessmentResult {
   recommendations: string[];
   confidence: number; // 0-1
 }
+
+// ========================================
+// COMPETITOR ANALYSIS TYPES
+// ========================================
+
+// Job data payload for competitor analysis queue
+export interface CompetitorAnalysisJobData {
+  jobId: string;
+  startupId: string;
+  startupData: {
+    name: string;
+    description?: string;
+    websiteUrl?: string;
+    keyMetrics: KeyMetric[];
+    teamMembers: TeamMember[];
+    marketInfo?: MarketInfo;
+    finalSummary?: string;
+  };
+}
+
+// Result structure for competitor analysis job
+export interface CompetitorAnalysisJobResult {
+  overallScore: number; // 0-1 (0 = poor positioning, 1 = excellent positioning)
+  marketPosition: string;
+  competitiveAdvantage: string;
+  threats: string[];
+  opportunities: string[];
+  recommendations: string[];
+  confidenceScore: number; // 0-1
+  competitors: CompetitorResult[];
+  completedAt: string;
+}
+
+// Individual competitor analysis result
+export interface CompetitorResult {
+  name: string;
+  website?: string;
+  description?: string;
+  marketPosition?: string;
+  strengths: string[];
+  weaknesses: string[];
+  similarityScore: number; // 0-1 (how similar to our startup)
+  threatLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  funding?: string;
+  employees?: string;
+  founded?: string;
+}

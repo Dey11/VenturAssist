@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getIngestionJobStatus } from "@/server/bullmq/queues/ingestion-queue";
 import { getRedLensJobStatus } from "@/server/bullmq/queues/redlens-queue";
+import { getCompetitorJobStatus } from "@/server/bullmq/queues/competitor-queue";
 
 // Get job status and details
 export async function GET(
@@ -62,6 +63,8 @@ export async function GET(
         queueJobStatus = await getIngestionJobStatus(jobId);
       } else if (job.type === "REDLENS_RISK_ASSESSMENT") {
         queueJobStatus = await getRedLensJobStatus(jobId);
+      } else if (job.type === "COMPETITOR_ANALYSIS") {
+        queueJobStatus = await getCompetitorJobStatus(jobId);
       }
     } catch (error) {
       console.warn("Could not get queue job status:", error);
@@ -104,6 +107,22 @@ export async function GET(
       };
     } else if (job.type === "REDLENS_RISK_ASSESSMENT") {
       // For RedLens jobs, progress is based on job status
+      progress =
+        job.status === "COMPLETED"
+          ? 100
+          : job.status === "IN_PROGRESS"
+            ? 50
+            : 0;
+
+      progressData = {
+        percentage: Math.round(progress),
+        completed: job.status === "COMPLETED" ? 1 : 0,
+        failed: job.status === "FAILED" ? 1 : 0,
+        inProgress: job.status === "IN_PROGRESS" ? 1 : 0,
+        total: 1,
+      };
+    } else if (job.type === "COMPETITOR_ANALYSIS") {
+      // For competitor analysis jobs, progress is based on job status
       progress =
         job.status === "COMPLETED"
           ? 100

@@ -17,6 +17,7 @@ import { getDataSourceContent } from "../services/object-storage";
 import { analyzeDataSource } from "../services/analyzer";
 import { storeAnalysisResult } from "../services/analysis-storage";
 import { addRedLensJob } from "../queues/redlens-queue";
+import { addCompetitorJob } from "../queues/competitor-queue";
 import { JobType } from "@/generated/prisma/client";
 
 /**
@@ -65,6 +66,52 @@ async function getAnalysisDataForRedLens(startupId: string) {
       severity: risk.severity as "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
     })),
     description: startup.description || undefined,
+    finalSummary: startup.finalSummary || undefined,
+  };
+}
+
+/**
+ * Get analysis data for competitor analysis
+ */
+async function getAnalysisDataForCompetitor(startupId: string) {
+  const startup = await prisma.startup.findUnique({
+    where: { id: startupId },
+    include: {
+      keyMetrics: true,
+      teamMembers: true,
+      marketInfo: true,
+    },
+  });
+
+  if (!startup) {
+    throw new Error(`Startup ${startupId} not found`);
+  }
+
+  return {
+    name: startup.name,
+    description: startup.description || undefined,
+    websiteUrl: startup.websiteUrl || undefined,
+    keyMetrics: startup.keyMetrics.map((metric) => ({
+      name: metric.name,
+      value: metric.value,
+      unit: metric.unit || undefined,
+      reportedDate: metric.reportedDate || undefined,
+      insight: metric.insight || undefined,
+    })),
+    teamMembers: startup.teamMembers.map((member) => ({
+      name: member.name,
+      role: member.role || undefined,
+      linkedInUrl: member.linkedInUrl || undefined,
+      bioSummary: member.bioSummary || undefined,
+    })),
+    marketInfo: startup.marketInfo
+      ? {
+          tam: startup.marketInfo.tam || undefined,
+          sam: startup.marketInfo.sam || undefined,
+          som: startup.marketInfo.som || undefined,
+          analysis: startup.marketInfo.analysis || undefined,
+        }
+      : undefined,
     finalSummary: startup.finalSummary || undefined,
   };
 }
@@ -338,6 +385,41 @@ async function processIngestionJob(
           error,
         );
         // Don't fail the ingestion job if RedLens trigger fails
+      }
+
+      // Also trigger competitor analysis
+      try {
+        console.log(`Triggering competitor analysis for startup ${startupId}`);
+
+        // Get the analysis data for competitor analysis
+        const startupData = await getAnalysisDataForCompetitor(startupId);
+
+        // Create a competitor analysis job
+        const competitorJob = await prisma.job.create({
+          data: {
+            type: JobType.COMPETITOR_ANALYSIS,
+            status: JobStatus.PENDING,
+            startupId,
+            payload: { startupId, startupData },
+          },
+        });
+
+        // Add the job to the competitor queue
+        await addCompetitorJob({
+          jobId: competitorJob.id,
+          startupId,
+          startupData,
+        });
+
+        console.log(
+          `Competitor analysis job ${competitorJob.id} queued for startup ${startupId}`,
+        );
+      } catch (error) {
+        console.error(
+          `Failed to trigger competitor analysis for startup ${startupId}:`,
+          error,
+        );
+        // Don't fail the ingestion job if competitor analysis trigger fails
       }
     }
 

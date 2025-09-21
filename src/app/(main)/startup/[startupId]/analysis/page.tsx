@@ -83,6 +83,33 @@ interface RedLensAssessment {
   moduleAssessments: RedLensModuleAssessment[];
 }
 
+interface Competitor {
+  id: string;
+  name: string;
+  website?: string;
+  description?: string;
+  marketPosition?: string;
+  strengths: string[];
+  weaknesses: string[];
+  similarityScore: number;
+  threatLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  funding?: string;
+  employees?: string;
+  founded?: string;
+}
+
+interface CompetitorAnalysis {
+  id: string;
+  overallScore: number;
+  marketPosition: string;
+  competitiveAdvantage: string;
+  threats: string[];
+  opportunities: string[];
+  recommendations: string[];
+  confidenceScore: number;
+  competitors: Competitor[];
+}
+
 interface Startup {
   id: string;
   name: string;
@@ -100,6 +127,7 @@ interface Startup {
   risks: RiskIndicator[];
   benchmarks: Benchmark[];
   redLensAssessment?: RedLensAssessment;
+  competitorAnalysis?: CompetitorAnalysis;
 }
 
 export default function AnalysisPage() {
@@ -688,6 +716,228 @@ export default function AnalysisPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Competitor Analysis */}
+        {startup.competitorAnalysis && (
+          <div className="mt-8 rounded-lg border bg-white p-6">
+            <h2 className="mb-4 flex items-center text-xl font-semibold text-gray-900">
+              <Target className="mr-2 h-5 w-5" />
+              Competitor Analysis
+            </h2>
+
+            {/* Overall Assessment */}
+            <div className="mb-6 rounded-lg bg-gray-50 p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Competitive Position Score
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`h-3 w-20 rounded-full ${
+                      startup.competitorAnalysis.overallScore > 0.7
+                        ? "bg-green-500"
+                        : startup.competitorAnalysis.overallScore > 0.5
+                          ? "bg-yellow-500"
+                          : startup.competitorAnalysis.overallScore > 0.3
+                            ? "bg-orange-500"
+                            : "bg-red-500"
+                    }`}
+                  >
+                    <div
+                      className="h-full rounded-full bg-white shadow-sm"
+                      style={{
+                        width: `${startup.competitorAnalysis.overallScore * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-gray-600">
+                    {(startup.competitorAnalysis.overallScore * 100).toFixed(0)}
+                    %
+                  </span>
+                </div>
+              </div>
+              <p className="mb-2 text-sm text-gray-600">
+                <strong>Market Position:</strong>{" "}
+                {startup.competitorAnalysis.marketPosition}
+              </p>
+              <p className="mb-2 text-sm text-gray-600">
+                <strong>Competitive Advantage:</strong>{" "}
+                {startup.competitorAnalysis.competitiveAdvantage}
+              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-900">
+                  Confidence:{" "}
+                  {(startup.competitorAnalysis.confidenceScore * 100).toFixed(
+                    0,
+                  )}
+                  %
+                </p>
+              </div>
+            </div>
+
+            {/* Threats and Opportunities */}
+            <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <h4 className="mb-3 text-sm font-medium text-gray-900">
+                  Threats
+                </h4>
+                <ul className="space-y-2">
+                  {startup.competitorAnalysis.threats
+                    .slice(0, 3)
+                    .map((threat, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start text-sm text-gray-600"
+                      >
+                        <AlertCircle className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-red-500" />
+                        {threat}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="mb-3 text-sm font-medium text-gray-900">
+                  Opportunities
+                </h4>
+                <ul className="space-y-2">
+                  {startup.competitorAnalysis.opportunities
+                    .slice(0, 3)
+                    .map((opportunity, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start text-sm text-gray-600"
+                      >
+                        <CheckCircle className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-500" />
+                        {opportunity}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="mb-6">
+              <h4 className="mb-3 text-sm font-medium text-gray-900">
+                Strategic Recommendations
+              </h4>
+              <ul className="space-y-2">
+                {startup.competitorAnalysis.recommendations
+                  .slice(0, 3)
+                  .map((recommendation, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start text-sm text-gray-600"
+                    >
+                      <Target className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-blue-500" />
+                      {recommendation}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+
+            {/* Competitors */}
+            <div>
+              <h4 className="mb-4 text-sm font-medium text-gray-900">
+                Identified Competitors
+              </h4>
+              <div className="space-y-4">
+                {startup.competitorAnalysis.competitors.map((competitor) => (
+                  <div key={competitor.id} className="rounded-lg border p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <h5 className="text-sm font-medium text-gray-900">
+                          {competitor.name}
+                        </h5>
+                        {competitor.website && (
+                          <a
+                            href={competitor.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            {competitor.website}
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${
+                            competitor.threatLevel === "CRITICAL"
+                              ? "bg-red-100 text-red-800"
+                              : competitor.threatLevel === "HIGH"
+                                ? "bg-orange-100 text-orange-800"
+                                : competitor.threatLevel === "MEDIUM"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {competitor.threatLevel} THREAT
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {(competitor.similarityScore * 100).toFixed(0)}%
+                          similar
+                        </span>
+                      </div>
+                    </div>
+
+                    {competitor.description && (
+                      <p className="mb-3 text-sm text-gray-600">
+                        {competitor.description}
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <h6 className="mb-2 text-xs font-medium text-gray-700">
+                          Strengths
+                        </h6>
+                        <ul className="space-y-1">
+                          {competitor.strengths
+                            .slice(0, 2)
+                            .map((strength, index) => (
+                              <li key={index} className="text-xs text-gray-600">
+                                • {strength}
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h6 className="mb-2 text-xs font-medium text-gray-700">
+                          Weaknesses
+                        </h6>
+                        <ul className="space-y-1">
+                          {competitor.weaknesses
+                            .slice(0, 2)
+                            .map((weakness, index) => (
+                              <li key={index} className="text-xs text-gray-600">
+                                • {weakness}
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {(competitor.funding ||
+                      competitor.employees ||
+                      competitor.founded) && (
+                      <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-500">
+                        {competitor.funding && (
+                          <span>💰 {competitor.funding}</span>
+                        )}
+                        {competitor.employees && (
+                          <span>👥 {competitor.employees}</span>
+                        )}
+                        {competitor.founded && (
+                          <span>📅 {competitor.founded}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

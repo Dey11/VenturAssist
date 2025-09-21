@@ -86,6 +86,13 @@ export async function GET(
             },
           },
         },
+        competitorAnalysis: {
+          include: {
+            competitors: {
+              orderBy: { similarityScore: "desc" },
+            },
+          },
+        },
       },
     });
 

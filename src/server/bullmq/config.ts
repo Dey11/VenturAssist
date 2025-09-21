@@ -11,8 +11,8 @@ const connection = new IORedis(redisUrl, {
 export const QUEUE_NAMES = {
   INGESTION: "ingestion-queue",
   REDLENS: "redlens-queue",
+  COMPETITOR: "competitor-queue",
   // Future queues can be added here
-  // COMPETITOR_SCRAPING: 'competitor-scraping-queue',
   // BENCHMARKING: 'benchmarking-queue',
 } as const;
 
