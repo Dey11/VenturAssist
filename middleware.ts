@@ -19,13 +19,17 @@ export async function middleware(request: NextRequest) {
       });
 
       if (!session) {
-        // Redirect to login page if not authenticated
-        return NextResponse.redirect(new URL("/login", request.url));
+        // Create a redirect URL that preserves the original path
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("callbackUrl", pathname);
+        return NextResponse.redirect(loginUrl);
       }
     } catch (error) {
       console.error("Authentication error in middleware:", error);
-      // Redirect to login page on authentication error
-      return NextResponse.redirect(new URL("/login", request.url));
+      // Create a redirect URL that preserves the original path
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
     }
   }
 

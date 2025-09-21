@@ -30,7 +30,7 @@ const page = () => {
   const params = useParams();
   const router = useRouter();
   const startupId = params.startupId as string;
-  
+
   const [messages, setMessages] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
   >([]);
@@ -39,20 +39,23 @@ const page = () => {
   const [startups, setStartups] = useState<Startup[]>([]);
   const [selectedStartup, setSelectedStartup] = useState<Startup | null>(null);
   const [isLoadingStartups, setIsLoadingStartups] = useState(true);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchStartups = async () => {
       try {
-        const response = await fetch('/api/startup');
+        const response = await fetch("/api/startup");
         if (response.ok) {
           const data = await response.json();
           setStartups(data);
-          
-          const currentStartup = data.find((startup: Startup) => startup.id === startupId);
+
+          const currentStartup = data.find(
+            (startup: Startup) => startup.id === startupId,
+          );
           setSelectedStartup(currentStartup || null);
         }
       } catch (error) {
-        console.error('Error fetching startups:', error);
+        console.error("Error fetching startups:", error);
       } finally {
         setIsLoadingStartups(false);
       }
@@ -68,12 +71,21 @@ const page = () => {
     }
   };
 
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
   const sendMessageToAPI = async (message: string) => {
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
+      const response = await fetch("/api/chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           messages: [...messages, { role: "user", content: message }],
@@ -82,13 +94,13 @@ const page = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        throw new Error("Failed to send message");
       }
 
       const data = await response.json();
       return data.reply;
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
       return "Sorry, I encountered an error while processing your message. Please try again.";
     }
   };
@@ -96,7 +108,7 @@ const page = () => {
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
-    
+
     const userMessage = { role: "user" as const, content: trimmed };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -104,14 +116,20 @@ const page = () => {
 
     try {
       const assistantReply = await sendMessageToAPI(trimmed);
-      
-      setMessages((prev) => [...prev, { role: "assistant", content: assistantReply }]);
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: assistantReply },
+      ]);
     } catch (error) {
-      console.error('Error in handleSend:', error);
-      setMessages((prev) => [...prev, { 
-        role: "assistant", 
-        content: "Sorry, I encountered an error. Please try again." 
-      }]);
+      console.error("Error in handleSend:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Sorry, I encountered an error. Please try again.",
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +156,11 @@ const page = () => {
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${m.role === "user" ? "bg-brand-accent rounded-br-sm text-black" : "rounded-bl-sm border border-gray-200 bg-white text-gray-900"}`}
                 >
-                  {m.role === "user" ? m.content : <MarkdownRenderer content={m.content} />}
+                  {m.role === "user" ? (
+                    m.content
+                  ) : (
+                    <MarkdownRenderer content={m.content} />
+                  )}
                 </div>
               </div>
             ))}
@@ -151,6 +173,7 @@ const page = () => {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
@@ -164,8 +187,8 @@ const page = () => {
               <div
                 key={idx}
                 className={`rounded-2xl px-4 py-2 text-white hover:cursor-pointer ${
-                  isLoading 
-                    ? "bg-gray-400 cursor-not-allowed" 
+                  isLoading
+                    ? "cursor-not-allowed bg-gray-400"
                     : "bg-brand-primary hover:bg-brand-primary/90"
                 }`}
                 onClick={() => !isLoading && setInput(s)}
@@ -183,7 +206,13 @@ const page = () => {
               disabled={isLoadingStartups}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={isLoadingStartups ? "Loading startups..." : "Select a startup"}>
+                <SelectValue
+                  placeholder={
+                    isLoadingStartups
+                      ? "Loading startups..."
+                      : "Select a startup"
+                  }
+                >
                   {selectedStartup ? selectedStartup.name : "Select a startup"}
                 </SelectValue>
               </SelectTrigger>
@@ -193,7 +222,7 @@ const page = () => {
                     <div className="flex flex-col">
                       <span className="font-medium">{startup.name}</span>
                       {startup.description && (
-                        <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                        <span className="max-w-[200px] truncate text-xs text-gray-500">
                           {startup.description}
                         </span>
                       )}

@@ -24,11 +24,11 @@ export default function Sidebar() {
     setActiveItem(
       pathname === "/add-startup"
         ? "add-startup"
-        : pathname === "/chat"
-          ? "chat"
+        : pathname.startsWith("/chat")
+          ? "chat/1"
           : pathname === "/startups"
             ? "startups"
-            : "startups",
+            : "chat/1",
     );
   }, [pathname]);
 
@@ -127,6 +127,6 @@ const navItems = [
     id: 3,
     icon: <MessageCircleMore className={cn("text-gray-300")} />,
     label: "Chat with Venturassist",
-    href: "/chat",
+    href: "/chat/1",
   },
 ];

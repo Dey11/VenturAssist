@@ -4,21 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { createAuthClient } from "better-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 const { useSession } = createAuthClient();
 
 const page = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { data: session } = useSession();
 
   useEffect(() => {
     if (session) {
-      router.push("/startups");
+      // Get the callback URL from search params, default to /startups
+      const callbackUrl = searchParams.get("callbackUrl") || "/startups";
+      router.push(callbackUrl);
     }
-  }, [session, router]);
+  }, [session, router, searchParams]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +42,9 @@ const page = () => {
       if (error) {
         setError(error.message || "An unexpected error occurred");
       } else if (data) {
-        router.push("/startups");
+        // Get the callback URL from search params, default to /startups
+        const callbackUrl = searchParams.get("callbackUrl") || "/startups";
+        router.push(callbackUrl);
       }
     } catch (err) {
       setError("An unexpected error occurred");
