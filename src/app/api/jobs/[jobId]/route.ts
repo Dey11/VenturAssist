@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { jobId: string } },
+  { params }: { params: Promise<{ jobId: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -15,7 +15,9 @@ export async function GET(
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const validatedBody = getJobSchema.safeParse({ jobId: params.jobId });
+    const validatedBody = getJobSchema.safeParse({
+      jobId: (await params).jobId,
+    });
 
     if (!validatedBody.success) {
       return NextResponse.json(
