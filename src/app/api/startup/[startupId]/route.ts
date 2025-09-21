@@ -53,8 +53,31 @@ export async function GET(
             name: true,
             value: true,
             unit: true,
+            reportedDate: true,
             insight: true,
           },
+        },
+        teamMembers: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            linkedInUrl: true,
+            bioSummary: true,
+          },
+        },
+        marketInfo: {
+          select: {
+            id: true,
+            tam: true,
+            sam: true,
+            som: true,
+            analysis: true,
+          },
+        },
+        jobs: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
         },
       },
     });

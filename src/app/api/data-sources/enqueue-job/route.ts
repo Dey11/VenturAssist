@@ -3,6 +3,7 @@ import { enqueueJobSchema } from "@/lib/schema";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { JobStatus, JobType } from "@/generated/prisma/client";
+import { addIngestionJob } from "@/server/bullmq/queues/ingestion-queue";
 
 // This route is used to enqueue a job to extract data from all data sources.
 export async function POST(req: NextRequest) {
@@ -32,6 +33,10 @@ export async function POST(req: NextRequest) {
         where: { startupId, status: JobStatus.NOT_STARTED },
       });
 
+      if (allDataSources.length === 0) {
+        throw new Error("No data sources found to process");
+      }
+
       const job = await tx.job.create({
         data: {
           startupId,
@@ -50,13 +55,39 @@ export async function POST(req: NextRequest) {
       return job;
     });
 
-    return NextResponse.json(
-      {
-        message: "Job enqueued successfully",
+    // Enqueue the job in BullMQ after database transaction
+    try {
+      const queueJob = await addIngestionJob({
         jobId: newJob.id,
-      },
-      { status: 201 },
-    );
+        startupId,
+        dataSourceIds: (newJob.payload as any)?.dataSources as string[],
+      });
+
+      return NextResponse.json(
+        {
+          message: "Job enqueued successfully",
+          jobId: newJob.id,
+          queueJobId: queueJob.id,
+        },
+        { status: 201 },
+      );
+    } catch (queueError) {
+      console.error("Failed to enqueue job in BullMQ:", queueError);
+
+      // Rollback the database changes if queue enqueue fails
+      await prisma.$transaction(async (tx) => {
+        await tx.job.delete({ where: { id: newJob.id } });
+        await tx.dataSource.updateMany({
+          where: { startupId, status: JobStatus.PENDING },
+          data: { status: JobStatus.NOT_STARTED },
+        });
+      });
+
+      return NextResponse.json(
+        { error: "Failed to enqueue job for processing" },
+        { status: 500 },
+      );
+    }
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },

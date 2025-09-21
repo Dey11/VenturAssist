@@ -3,7 +3,13 @@
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FileSearch, MessageCircleMore, Menu, X } from "lucide-react";
+import {
+  FileSearch,
+  MessageCircleMore,
+  Menu,
+  X,
+  Building2,
+} from "lucide-react";
 import Link from "next/link";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
@@ -20,7 +26,9 @@ export default function Sidebar() {
         ? "add-startup"
         : pathname === "/chat"
           ? "chat"
-          : "dashboard",
+          : pathname === "/startups"
+            ? "startups"
+            : "startups",
     );
   }, [pathname]);
 
@@ -105,12 +113,18 @@ export default function Sidebar() {
 const navItems = [
   {
     id: 1,
+    icon: <Building2 className={cn("text-gray-300")} />,
+    label: "My Startups",
+    href: "/startups",
+  },
+  {
+    id: 2,
     icon: <FileSearch className={cn("text-gray-300")} />,
     label: "Analyse a startup",
     href: "/add-startup",
   },
   {
-    id: 2,
+    id: 3,
     icon: <MessageCircleMore className={cn("text-gray-300")} />,
     label: "Chat with Venturassist",
     href: "/chat",

@@ -16,7 +16,7 @@ const page = () => {
 
   useEffect(() => {
     if (session) {
-      router.push("/dashboard");
+      router.push("/startups");
     }
   }, [session, router]);
 
@@ -39,7 +39,7 @@ const page = () => {
       if (error) {
         setError(error.message || "An unexpected error occurred");
       } else if (data) {
-        router.push("/dashboard");
+        router.push("/startups");
       }
     } catch (err) {
       setError("An unexpected error occurred");

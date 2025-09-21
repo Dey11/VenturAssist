@@ -22,16 +22,17 @@ const page = () => {
   const { data: session } = authClient.useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!session) {
-      router.push("/login");
-    }
-  }, [session, router]);
-
   const [messages, setMessages] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
   >([]);
   const [input, setInput] = useState("");
+
+  useEffect(() => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+  }, [session, router]);
 
   const handleSend = () => {
     const trimmed = input.trim();
