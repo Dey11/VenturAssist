@@ -1,9 +1,11 @@
 "use client";
 
 import { StartupCard } from "@/components/ui/startup-card";
-import { Button } from "@/components/ui/button";;
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 const sampleStartups = [
   {
@@ -17,6 +19,15 @@ const sampleStartups = [
 ];
 
 export default function StartupsPage() {
+  const { data: session } = authClient.useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!session) {
+      router.push("/login");
+    }
+  }, [session, router]);
+
   const [startups] = useState(sampleStartups);
 
   const handleViewAnalysis = (id: string) => {

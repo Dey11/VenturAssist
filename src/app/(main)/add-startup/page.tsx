@@ -1,16 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import FileDropzone from "@/components/landing/file-dropzone";
+import { authClient } from "@/lib/auth-client";
 
 type Sector = "fintech" | "healthtech" | "edtech" | "other";
 type Stage = "idea" | "preseed" | "seed" | "series a";
 
 export default function AddStartupPage() {
+  const { data: session } = authClient.useSession();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!session) {
+      router.push("/login");
+    }
+  }, [session, router]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [startupName, setStartupName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
