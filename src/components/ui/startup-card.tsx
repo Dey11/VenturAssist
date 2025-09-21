@@ -36,8 +36,8 @@ export function StartupCard({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-      <div className="mb-4">
+    <div className="flex h-96 flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+      <div className="mb-4 flex-shrink-0">
         {thumbnailUrl ? (
           <Image
             src={thumbnailUrl}
@@ -47,7 +47,7 @@ export function StartupCard({
             className="h-24 w-full rounded border object-cover"
           />
         ) : (
-          <div className="flex h-46 w-full items-center justify-center rounded border bg-gray-100">
+          <div className="flex h-24 w-full items-center justify-center rounded border bg-gray-100">
             <div className="text-center text-xs text-gray-400">
               <div className="font-semibold">1.0 SUBTOPIC 1</div>
               <div className="text-xs">1.2 SUBTOPIC 2</div>
@@ -57,20 +57,37 @@ export function StartupCard({
         )}
       </div>
 
-      <div className="space-y-3">
-        <div>
-          <h3 className="text-brand-primary text-lg font-semibold">{name}</h3>
-          <p className="text-brand-primary text-sm">{tagline}</p>
+      <div className="flex flex-1 flex-col space-y-3">
+        <div className="flex-shrink-0">
+          <h3
+            className="text-brand-primary truncate text-lg font-semibold"
+            title={name}
+          >
+            {name}
+          </h3>
+          <p
+            className="text-brand-primary overflow-hidden text-sm"
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}
+            title={tagline}
+          >
+            {tagline}
+          </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="flex-1 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Team:</span>
             <span className="font-medium">{teamSize} members</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Financials:</span>
-            <span className="font-medium">{arr}</span>
+            <span className="truncate font-medium" title={arr}>
+              {arr}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Risk Level:</span>
@@ -83,13 +100,16 @@ export function StartupCard({
             </span>
           </div>
         </div>
-        <Button
-          variant="brand"
-          className="mt-4 w-full"
-          onClick={() => onViewAnalysis?.(id)}
-        >
-          View Analysis
-        </Button>
+
+        <div className="flex-shrink-0">
+          <Button
+            variant="brand"
+            className="w-full"
+            onClick={() => onViewAnalysis?.(id)}
+          >
+            View Analysis
+          </Button>
+        </div>
       </div>
     </div>
   );

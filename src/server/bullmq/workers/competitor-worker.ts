@@ -9,9 +9,6 @@ import { storeCompetitorAnalysisResult } from "../services/competitor-storage";
 import prisma from "@/lib/prisma";
 import { JobStatus } from "@/generated/prisma/client";
 
-/**
- * Process a competitor analysis job
- */
 async function processCompetitorJob(
   job: Job<CompetitorAnalysisJobData, CompetitorAnalysisJobResult>,
 ): Promise<CompetitorAnalysisJobResult> {
@@ -68,9 +65,6 @@ async function processCompetitorJob(
   }
 }
 
-/**
- * Create the competitor analysis worker
- */
 export function createCompetitorWorker() {
   const worker = getWorker(QUEUE_NAMES.COMPETITOR, processCompetitorJob, {
     concurrency: 2, // Process up to 2 competitor analysis jobs concurrently

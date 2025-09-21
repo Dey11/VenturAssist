@@ -178,6 +178,7 @@ export default function StartupsPage() {
                 arr={getARR(startup.keyMetrics)}
                 riskLevel={getRiskLevel(startup.risks)}
                 onViewAnalysis={handleViewAnalysis}
+                thumbnailUrl="/thumbnail.png"
               />
             ))}
           </div>

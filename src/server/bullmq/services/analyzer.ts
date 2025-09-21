@@ -9,10 +9,8 @@ import {
   RiskIndicator,
 } from "../types";
 
-// Initialize the AI model
 const model = google("gemini-2.5-flash");
 
-// Define Zod schema for the analysis result
 const analysisResultSchema = z.object({
   summary: z.string().describe("A concise 2-3 sentence summary of the startup"),
   keyMetrics: z
@@ -96,9 +94,7 @@ const analysisResultSchema = z.object({
     .describe("Key actionable insights about this startup"),
 });
 
-/**
- * Analyze a data source content and extract structured information
- */
+// Analyze a data source content and extract structured information
 export async function analyzeDataSource(
   content: string,
   fileName?: string,

@@ -85,9 +85,7 @@ const competitorAnalysisSchema = z.object({
     .describe("Array of 3-5 identified competitors"),
 });
 
-/**
- * Helper function to perform web search for competitor discovery
- */
+// Helper function to perform web search for competitor discovery
 async function discoverCompetitors(
   startupData: CompetitorAnalysisJobData["startupData"],
 ): Promise<string> {
@@ -126,9 +124,7 @@ async function discoverCompetitors(
   }
 }
 
-/**
- * Helper function to analyze competitor websites using Exa API
- */
+// Helper function to analyze competitor websites using Exa API
 async function analyzeCompetitorWebsite(websiteUrl: string): Promise<string> {
   try {
     const { text, sources } = await generateText({
@@ -153,9 +149,8 @@ async function analyzeCompetitorWebsite(websiteUrl: string): Promise<string> {
   }
 }
 
-/**
- * Perform comprehensive competitor analysis
- */
+// Perform comprehensive competitor analysis
+
 export async function performCompetitorAnalysis(
   jobData: CompetitorAnalysisJobData,
 ): Promise<CompetitorAnalysisJobResult> {
