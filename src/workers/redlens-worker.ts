@@ -31,7 +31,7 @@ process.on("unhandledRejection", (reason, promise) => {
 // Start the worker
 console.log("Starting RedLens risk assessment worker...");
 console.log("Environment:", process.env.NODE_ENV || "development");
-console.log("Redis URL:", process.env.REDIS_URL || "redis://localhost:6379");
+console.log("Redis URL:", process.env.REDIS_URL ? "Set" : "Not set");
 
 try {
   const worker = createRedLensWorker();
