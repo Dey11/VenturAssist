@@ -69,7 +69,8 @@ graph TD
 
 ### **AI & Processing**
 
-- **Google Gemini 2.5 Flash** for AI analysis
+- **Google Gemini 3.7 Flash** for extraction, analysis, synthesis, and chat
+- **Google Gemini 2.5 Flash** for Google Search grounding until 3.7 grounding quota is enabled
 - **AI SDK** for structured AI interactions
 - **Zod** for data validation and schemas
 - **Mammoth** for Word document processing
@@ -86,7 +87,7 @@ graph TD
 - PostgreSQL database
 - Redis instance
 - Cloudflare R2 account (for file storage)
-- Google AI API key
+- Google AI API key with Gemini API access
 
 ### Installation
 
@@ -120,6 +121,8 @@ graph TD
 
    # AI
    GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-key"
+   GEMINI_MODEL="gemini-3.7-flash"
+   GEMINI_SEARCH_MODEL="gemini-2.5-flash"
 
    # File Storage
    CLOUDFLARE_R2_ACCESS_KEY_ID="your-r2-access-key"

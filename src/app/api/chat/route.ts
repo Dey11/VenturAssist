@@ -1,8 +1,7 @@
+import { generateText, stepCountIs, tool } from "ai";
 import { NextResponse } from "next/server";
-
-import { generateText, stepCountIs, streamText, tool } from "ai";
-import { google } from "@ai-sdk/google";
 import z from "zod";
+import { geminiModel } from "@/lib/ai-models";
 import prisma from "@/lib/prisma";
 
 const getStartupInfoDB = async (startupId: string) => {
@@ -419,7 +418,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await generateText({
-      model: google("gemini-2.5-flash"),
+      model: geminiModel,
       system: `You are a comprehensive startup analysis assistant with access to detailed information about startups. You can access:
 
 **Basic Information**: Startup details, team members, key metrics, and market information

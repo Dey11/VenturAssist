@@ -1,15 +1,7 @@
 import { generateObject } from "ai";
-import { google } from "@ai-sdk/google";
 import { z } from "zod";
-import {
-  DataSourceAnalysisResult,
-  KeyMetric,
-  TeamMember,
-  MarketInfo,
-  RiskIndicator,
-} from "../types";
-
-const model = google("gemini-2.5-flash");
+import { geminiModel } from "@/lib/ai-models";
+import type { DataSourceAnalysisResult } from "../types";
 
 const analysisResultSchema = z.object({
   summary: z.string().describe("A concise 2-3 sentence summary of the startup"),
@@ -124,10 +116,9 @@ Guidelines:
 `;
 
     const { object: analysisResult } = await generateObject({
-      model,
+      model: geminiModel,
       schema: analysisResultSchema,
       prompt,
-      temperature: 0.1,
     });
 
     console.log("AI Analysis Result:", JSON.stringify(analysisResult, null, 2));

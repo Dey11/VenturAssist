@@ -33,12 +33,14 @@ console.log("Starting ingestion worker...");
 console.log("Environment:", {
   NODE_ENV: process.env.NODE_ENV,
   REDIS_URL: process.env.REDIS_URL ? "Set" : "Not set",
-  GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY ? "Set" : "Not set",
+  GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY
+    ? "Set"
+    : "Not set",
   DATABASE_URL: process.env.DATABASE_URL ? "Set" : "Not set",
 });
 
 try {
-  const worker = createIngestionWorker();
+  const _worker = createIngestionWorker();
   console.log("Ingestion worker started successfully");
 } catch (error) {
   console.error("Failed to start ingestion worker:", error);

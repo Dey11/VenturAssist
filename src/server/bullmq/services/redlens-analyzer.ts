@@ -1,10 +1,12 @@
 import { generateObject, generateText } from "ai";
-import { google } from "@ai-sdk/google";
 import { z } from "zod";
 import { RedLensModule } from "@/generated/prisma/client";
-import { RedLensModuleAssessmentResult } from "../types";
-
-const model = google("gemini-2.5-flash");
+import {
+  createGoogleSearchTool,
+  geminiModel,
+  geminiSearchModel,
+} from "@/lib/ai-models";
+import type { RedLensModuleAssessmentResult } from "../types";
 
 /**
  * Helper function to perform web search for additional context
@@ -12,9 +14,9 @@ const model = google("gemini-2.5-flash");
 async function performWebSearch(query: string): Promise<string> {
   try {
     const { text, sources } = await generateText({
-      model: google("gemini-2.5-flash"),
+      model: geminiSearchModel,
       tools: {
-        google_search: google.tools.googleSearch({}),
+        google_search: createGoogleSearchTool(),
       },
       prompt: `Search for: ${query}. Provide a concise summary of the most relevant and recent information.`,
     });
@@ -121,10 +123,9 @@ Provide a risk assessment with 2-3 specific findings and 2-3 actionable recommen
 `;
 
   const { object } = await generateObject({
-    model,
+    model: geminiModel,
     schema: moduleAssessmentSchema,
     prompt,
-    temperature: 0.1,
   });
 
   return {
@@ -171,10 +172,9 @@ Provide a risk assessment with 2-3 specific findings and 2-3 actionable recommen
 `;
 
   const { object } = await generateObject({
-    model,
+    model: geminiModel,
     schema: moduleAssessmentSchema,
     prompt,
-    temperature: 0.1,
   });
 
   return {
@@ -221,10 +221,9 @@ Provide a risk assessment with 2-3 specific findings and 2-3 actionable recommen
 `;
 
   const { object } = await generateObject({
-    model,
+    model: geminiModel,
     schema: moduleAssessmentSchema,
     prompt,
-    temperature: 0.1,
   });
 
   return {
@@ -272,10 +271,9 @@ Challenge conventional wisdom and identify what could go wrong. Provide a risk a
 `;
 
   const { object } = await generateObject({
-    model,
+    model: geminiModel,
     schema: moduleAssessmentSchema,
     prompt,
-    temperature: 0.2, // Slightly higher temperature for more creative contrarian thinking
   });
 
   return {
@@ -360,13 +358,12 @@ Provide a concise executive summary and clear investment recommendation.
 `;
 
     const { object: summaryResult } = await generateObject({
-      model,
+      model: geminiModel,
       schema: z.object({
         summary: z.string().describe("Executive summary of all risk findings"),
         recommendation: z.string().describe("Final investment recommendation"),
       }),
       prompt: summaryPrompt,
-      temperature: 0.1,
     });
 
     console.log(

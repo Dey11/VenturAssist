@@ -1,13 +1,14 @@
 import { generateObject, generateText } from "ai";
-import { google } from "@ai-sdk/google";
 import { z } from "zod";
 import {
+  createGoogleSearchTool,
+  geminiModel,
+  geminiSearchModel,
+} from "@/lib/ai-models";
+import type {
   CompetitorAnalysisJobData,
   CompetitorAnalysisJobResult,
-  CompetitorResult,
 } from "../types";
-
-const model = google("gemini-2.5-flash");
 
 // Schema for competitor analysis result
 const competitorAnalysisSchema = z.object({
@@ -91,9 +92,9 @@ async function discoverCompetitors(
 ): Promise<string> {
   try {
     const { text, sources } = await generateText({
-      model: google("gemini-2.5-flash"),
+      model: geminiSearchModel,
       tools: {
-        google_search: google.tools.googleSearch({}),
+        google_search: createGoogleSearchTool(),
       },
       prompt: `Find the top 5 competitors for "${startupData.name}" - a startup that ${startupData.description || "operates in the technology sector"}. 
       
@@ -127,10 +128,10 @@ async function discoverCompetitors(
 // Helper function to analyze competitor websites using Exa API
 async function analyzeCompetitorWebsite(websiteUrl: string): Promise<string> {
   try {
-    const { text, sources } = await generateText({
-      model: google("gemini-2.5-flash"),
+    const { text } = await generateText({
+      model: geminiSearchModel,
       tools: {
-        google_search: google.tools.googleSearch({}),
+        google_search: createGoogleSearchTool(),
       },
       prompt: `Analyze the website ${websiteUrl} and provide:
       - Company description and business model
@@ -202,10 +203,9 @@ Provide a comprehensive analysis that would be valuable for VCs evaluating this 
 `;
 
     const { object: analysisResult } = await generateObject({
-      model,
+      model: geminiModel,
       schema: competitorAnalysisSchema,
       prompt,
-      temperature: 0.1,
     });
 
     console.log("Competitor analysis completed successfully");
