@@ -33,4 +33,4 @@ This keeps all generation on Gemini and lets operators move search grounding to 
 
 ## Status
 
-Implementation verified locally. Production deployment pending.
+Complete. Commit `755c94a` is deployed to `venturassist.sdey.me`; the web app and all three workers passed readiness checks.
